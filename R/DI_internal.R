@@ -260,6 +260,9 @@ get_theta_info <- function(upper_boundary, DImodel, obj, family, int_terms,
 
 theta_CI <- function(obj, conf = .95) {
   threshold <- max(obj$profile_loglik$prof) - qchisq(conf, 1)/2
+  if(threshold < min(obj$profile_loglik$prof) | threshold > max(obj$profile_loglik$prof)) {
+    stop("CI cannot be computed. This is because the profile log-likelihood function is flat or displays unusual behaviour at the interval theta = (0.01, 2.5).") 
+  }
   CI_finder <- approxfun(x = obj$profile_loglik$grid,
                          y = obj$profile_loglik$prof - threshold)
   CI <- rootSolve::uniroot.all(CI_finder, interval = range(obj$profile_loglik$grid))
@@ -309,7 +312,7 @@ get_community <- function(prop, data) {
   ## transforming into a factor
   community_factor <- as.factor(comm_id)
   ## message and return
-  message("'community' is a factor with", n_comms, "levels, one for each unique set of proportions.\n")
+  message("'community' is a factor with ", n_comms, " levels, one for each unique set of proportions.\n")
   return(community_factor)
 }
 
@@ -514,4 +517,9 @@ anova_glmlist <- function (object, ..., dispersion = NULL, test = NULL) {
   }
   structure(table, heading = c(title, topnote), class = c("anova", 
                                                           "data.frame"))
+}
+
+update_DI <- function(object, ...) {
+  object$call <- object$DIcall
+  update.default(object, ...)
 }

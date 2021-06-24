@@ -51,7 +51,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 
 ## Load the Switzerland data
   data(Switzerland)
-## View the first five entries
+## View the first few entries
   head(Switzerland)
 ## Explore the variables in Switzerland
   str(Switzerland)
@@ -82,12 +82,17 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
            data = Switzerland)
   summary(m1)  
   plot(m1)
+  
+\donttest{
+## Check goodness-of-fit using a half-normal plot with a simulated envelope
   library(hnp)
   hnp(m1)
+}
   
 ## Set up the functional group interactions and add to a new Switzerland2 dataset
-  newlist <- DI_data_FG(prop = 4:7, FG = c("G","G","L","L"), data = Switzerland)
-  Switzerland2 <- data.frame(Switzerland, newlist$FG)
+  FG_matrix <- DI_data(prop = 4:7, FG = c("G","G","L","L"), 
+                          data = Switzerland, what = "FG")
+  Switzerland2 <- data.frame(Switzerland, FG_matrix)
   
 ## Additional model testing using DI to test for interactions with nitrogen
   m2 <- DI(y = "yield", block = "density", prop = 4:7, DImodel = "FG", FG = c("G","G","L","L"), 

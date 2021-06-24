@@ -66,10 +66,10 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
   if(treat_flag) {
     ## without treatment covariate -- single step: full selection
     message("\n", strrep("-", getOption("width")))
-    message("\nStep 1: Investigating the diversity effect\n\n")
-    if(!is.na(block) & is.na(density)) message("All models include block\n\n")
-    if(is.na(block) & !is.na(density)) message("All models include density\n\n")
-    if(!is.na(block) & !is.na(density)) message("All models include block and density\n\n")
+    message("Step 1: Investigating the diversity effect\n")
+    if(!is.na(block) & is.na(density)) message("All models include block\n")
+    if(is.na(block) & !is.na(density)) message("All models include density\n")
+    if(!is.na(block) & !is.na(density)) message("All models include block and density\n")
     # loglikelihoods, information criteria and no. of parameters
     llik <- sapply(all_models$model_list, function(x) as.numeric(logLik(x)))
     mAIC <- sapply(all_models$model_list, AIC2)
@@ -86,7 +86,7 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
                              BICc = BICcsel_autoDI(model_list = all_models$model_list, mBICc = mBICc, treat = treat)
                              )
     if(is.null(FG)) {
-      message("\nFunctional groups (argument 'FG') were not specified, and therefore not investigated.\n") 
+      message("\nFunctional groups (argument 'FG') were not specified, and therefore not investigated.") 
     }
     # get model formula
     #fmla_char <- as.character(formula(all_models$model_list[[selected_model]]))[c(2,1,3)]
@@ -99,18 +99,18 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
         namesub_autoDI(selected_model), "\n",
         "Formula: ",
         sep = "")
-    message(fmla_full, "\n", sep = " ")
+    message(fmla_full, sep = " ")
     message("\n", strrep("-", getOption("width")))
-    message("\nStep 2: No investigation of treatment effect included, since no treatment was specified\n
-        (argument 'treat' omitted)\n")
+    message("Step 2: No investigation of treatment effect included, since no treatment was specified
+        (argument 'treat' omitted)")
   } else {
     ## with treatment covariate, two steps
     ## step 1: full model selection
     message("\n", strrep("-", getOption("width")))
-    message("\nStep 1: Investigating the diversity effect\n\n")
-    if(!is.na(block) & is.na(density)) message("All models include block and treatment\n\n")
-    if(is.na(block) & !is.na(density)) message("All models include density and treatment\n\n")
-    if(!is.na(block) & !is.na(density)) message("All models include block, density and treatment\n\n")
+    message("Step 1: Investigating the diversity effect\n")
+    if(!is.na(block) & is.na(density)) message("All models include block and treatment\n")
+    if(is.na(block) & !is.na(density)) message("All models include density and treatment\n")
+    if(!is.na(block) & !is.na(density)) message("All models include block, density and treatment\n")
     # loglikelihoods, information criteria and no. of parameters
     llik <- sapply(all_models$model_list_treat, function(x) as.numeric(logLik(x)))
     mAIC <- sapply(all_models$model_list_treat, AIC2)
@@ -127,7 +127,7 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
                              BICc = BICcsel_autoDI(model_list = all_models$model_list_treat, mBICc = mBICc, treat = treat)
                              )
     if(is.null(FG)) {
-      message("\nFunctional groups (argument 'FG') were not specified, and therefore not investigated.\n") 
+      message("\nFunctional groups (argument 'FG') were not specified, and therefore not investigated.") 
     }
     # get model formula
     fmla_char <- as.character(formula(all_models$model_list_treat[[selected_model]]))[c(2,1,3)]
@@ -139,11 +139,11 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
         namesub_autoDI(selected_model), "\n",
         "Formula: ",
         sep = "")
-    message(fmla_full, "\n", sep = " ")
+    message(fmla_full, sep = " ")
     
     ## step 2 -- test the effect of treatment for the selected model
     message("\n", strrep("-", getOption("width")))
-    message("\nStep 2: Investigating the treatment effect\n\n")
+    message("Step 2: Investigating the treatment effect\n")
     string_id <- substr(selected_model, 1, 4)
     candidate_model_id <- grep(string_id, names(all_models$model_list))
     new_model_list <- list(all_models$model_list[[candidate_model_id]],
@@ -169,7 +169,7 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
         namesub_autoDI(selected_model_new), "\n",
         "Formula: ",
         sep = "")
-    message(fmla_full, "\n", sep = " ")
+    message(fmla_full, sep = " ")
   }
 
   ## finally, test for theta
@@ -199,19 +199,19 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
   ## if selected model is STR or ID, do not test for theta
   if(STR_ID_flag) {
     message("\n", strrep("-", getOption("width")))
-    message("\nNo investigation for theta available, since theta cannot be estimated for the selected model,\nbecause there is no diversity effect\n")
+    message("No investigation for theta available, since theta cannot be estimated for the selected model,\nbecause there is no diversity effect")
     final_model_list <- list(selected_model_new_object)
     names(final_model_list) <- c(selected_model_new)
     selected_model_final <- selected_model_new
   } else {
     ## otherwise, proceed with the test for theta
     message("\n", strrep("-", getOption("width")))
-    message("\nStep 3: Investigating whether theta is equal to 1 or not\n")
+    message("Step 3: Investigating whether theta is equal to 1 or not")
     theta_candidate_index <- grep(selected_model_new, names(theta_models_list))
     theta_candidate_name <- names(theta_models_list)[theta_candidate_index]
     theta_candidate_model <- theta_models_list[[theta_candidate_name]]
     th <- theta_candidate_model$coef["theta"]
-    message("\nTheta estimate: ", th, "\n", sep = "")
+    message("\nTheta estimate: ", round(th, 4), "\n", sep = "")
     final_model_list <- list(selected_model_new_object,
                              theta_candidate_model)
     names(final_model_list) <- c(selected_model_new,
@@ -239,7 +239,7 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
   if(step4) {
     ## step 4: lack-of-fit test (community model)
     message("\n", strrep("-", getOption("width")))
-    message("\nStep 4: Comparing the final selected model with the reference (community) model\n")
+    message("Step 4: Comparing the final selected model with the reference (community) model")
     community <- get_community(prop = prop, data = data)
     model_to_compare <- final_model_list[[selected_model_final]]
     model_to_compare_data <- model_to_compare$data
@@ -266,9 +266,9 @@ autoDI <- function(y, block, density, prop, treat, FG = NULL, data,
               "data" = newdata,
               "family" = family)
   class(ret) <- "autoDI"
-  message("\n", strrep("-", getOption("width")), "\n")
-  message("autoDI is limited in terms of model selection. Exercise caution when choosing your final model.")
   message("\n", strrep("-", getOption("width")))
+  message("autoDI is limited in terms of model selection. Exercise caution when choosing your final model.")
+  message(strrep("-", getOption("width")))
   return(ret)
 }
 
@@ -360,6 +360,9 @@ logLik.autoDI <- function(object, ...) {
   llik <- object$logLik
   npar <- object$df
   models <- namesub_autoDI(names(object$model_list))
+  fam <- family(object$model_list[[1]])$family
+  if (fam %in% c("gaussian", "Gamma", "inverse.gaussian")) 
+    npar <- npar + 1
   for(i in 1:length(models)) {
     cat(models[i], ": ", llik[i], " (df = ", npar[i], ")\n", sep = "") 
   }

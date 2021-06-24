@@ -48,19 +48,20 @@ The \emph{Interactions} component may also include an non-linear exponent parame
 
 The DI approach is a full regression method where the response of the community is characterised by the effects of diversity variables such as  \emph{Identities} and \emph{Interactions} components, and by experimental structural variables such as blocks, density and treatments. All of these may be important determinants of response and so should be included in the analysis of community responses. The \code{DImodels} package aims to make it easier to analyse data using DI models. 
 
-Currently, the \code{DImodels} package contains three main functions: \code{autoDI}, \code{DI} and \code{DI_data_prepare}. Here we give a brief overview of each, and link to the respective help files for further information. 
+Currently, the \code{DImodels} package contains three main functions: \code{autoDI}, \code{DI} and \code{DI_data}. Here we give a brief overview of each, and link to the respective help files for further information. 
 
 \code{auto_DI}: This function gives a simple overview of the successive contribution of the \emph{Structures}, \emph{Identities} and \emph{Interactions} components to the model via an automated model selection process. It will identify the 'best' model from a (limited) subset of all possible DI models. However, \code{autoDI} may need to be supplemented by more refined analysis, for example, \code{auto_DI} does not test for interactions between the terms in the \emph{Structures} and \emph{Identities} components. It can also only facilitate one block, one density and one treatment variable. However, it is a very useful starting point for DI model exploration. Further information at: \code{\link{autoDI}}.  
 
 \code{DI}: This function can fit a wide range of DI models and includes the flexibility to test for multiple treatments or additional interactions, for example, between terms in the \emph{Identities} and \emph{Structures} components. The DI function fits one user-defined DI model at a time, and it allows for flexibility in the form of the model through a combination of in-built argument options and additional user-defined options. Further information at: \code{\link{DI}}. 
 
-\code{DI_data_prepare}: This function can compute various forms of interactions among the \eqn{pi} variables. This function is not required when using \code{autoDI}, or for the in-built argument options in \code{DI}, but may be needed when specifying additional user-defined options in \code{DI}. Further information at: \code{\link{DI_data_prepare}} and for examples of when it is required see \code{\link{DI}}.  
+\code{DI_data}: This function can compute various forms of interactions among the \eqn{pi} variables. This function is not required when using \code{autoDI}, or for the in-built argument options in \code{DI}, but may be needed when specifying additional user-defined options in \code{DI}. Further information at: \code{\link{DI_data}} and for examples of when it is required see \code{\link{DI}}.  
 
-There are additional data manipulation functions: \code{\link{DI_data_E_AV}}, \code{\link{DI_data_FG}}, \code{\link{DI_data_ADD}}, that will individually prepare the various forms of interactions that \code{\link{DI_data_prepare}} does in one function. The function \code{\link{DI_data_fullpairwise}} will compute all individual pairwise interactions. Further information on all data manipulation functions at: \code{\link{DI_data_manipulation}}. 
-
-There are two other functions:
-1) \code{\link{theta_CI}} can fit a confidence interval to the parameter theta, when it has been estimated using either \code{autoDI} or \code{DI}, and 
-2) \code{\link{DI_compare}} that can compare a fitted DI model to the 'reference' model (see \code{\link{autoDI}}) for details about the reference model).
+There are three other functions:
+\enumerate{
+    \item \code{\link{theta_CI}} can fit a confidence interval to the parameter theta, when it has been estimated using either \code{autoDI} or \code{DI},
+    \item \code{\link{DI_compare}} that can compare a fitted DI model to the 'reference' model (see \code{\link{autoDI}}) for details about the reference model), and
+    \item \code{\link{update_DI}} that can update a fitted DI model passing different values to one or more arguments (see \code{\link{update_DI}}) for details).
+}
 
 \strong{Challenges with fitting and interpreting Diversity-Interactions models}
 
@@ -96,8 +97,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 \seealso{
 \code{\link{autoDI}}
 \code{\link{DI}}
-\code{\link{DI_data_prepare}}
-\code{\link{DI_data_manipulation}}
+\code{\link{DI_data}}
 \code{\link{theta_CI}}
 
 Example datasets:
@@ -129,11 +129,11 @@ The \code{\link{Switzerland}} dataset.
            FG = c("G","G","L","L"), DImodel = "FG", data = Switzerland)
   summary(m1)
   
-## Example of DI_data_prepare.
+## Example of DI_data.
 ## Create interaction variables and incorporate them into a new data frame Switzerland2.
 ## Switzerland2 will contain the new variables:  AV, E, p1_add, p2_add, p3_add, p4_add, 
 ##  bfg_G_L, wfg_G, wfg_L.
-  newlist <- DI_data_prepare(y = "yield", prop = c("p1","p2","p3","p4"), FG = c("G","G","L","L"),  
-                             data = Switzerland)
-  Switzerland2 <- data.frame(newlist$newdata, newlist$FG)
+  FG_matrix <- DI_data(prop = c("p1","p2","p3","p4"), FG = c("G","G","L","L"),  
+                       data = Switzerland, what = "FG")
+  Switzerland2 <- data.frame(Switzerland, FG_matrix)
 }

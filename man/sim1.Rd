@@ -102,7 +102,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 
 ## Load the sim1 data
   data(sim1)
-## View the first five entries
+## View the first few entries
   head(sim1)
 ## Explore the variables in sim1
   str(sim1)

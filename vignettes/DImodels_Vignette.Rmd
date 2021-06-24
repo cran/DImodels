@@ -20,6 +20,10 @@ knitr::opts_chunk$set(
 
 The `DImodels` package is designed to make fitting Diversity-Interactions models easier. Diversity-Interactions (DI) models (Kirwan et al 2009) are a set of tools for analysing and interpreting data from experiments that explore the effects of species diversity (from a pool of *S* species) on community-level responses. Data suitable for DI models will include (at least) for each experimental unit: a response recorded at a point in time, and a set of proportions of *S* species  $p_1$, $p_2$, ..., $p_S$ from a point in time prior to the recording of the response. The proportions sum to 1 for each experimental unit.   
 
+__Main changes in the package from version 1.0 to version 1.1__
+
+- `DI_data_prepare` is now superseded by `DI_data` (see examples below)
+
 ## `DImodels` installation and load
 
 The `DImodels` package is installed from CRAN and loaded in the typical way. 
@@ -149,7 +153,7 @@ summary(m1)
 
 ## Fitting customised models using the `DI` function
 
-There are two ways to fit customised models using `DI`; the first is by using the option `DImodel = ` in the `DI` function and adding the argument `extra_formula = ` to it, and the second is to use the `custom_formula` argument in the `DI` function. If species interaction variables (e.g., the FG interactions or the average pairwise interaction) are included in either `extra_formula` or `custom_formula`, they must first be created and included in the dataset. The function `DI_data_prepare` can be used to compute several types of species interaction variables. 
+There are two ways to fit customised models using `DI`; the first is by using the option `DImodel = ` in the `DI` function and adding the argument `extra_formula = ` to it, and the second is to use the `custom_formula` argument in the `DI` function. If species interaction variables (e.g., the FG interactions or the average pairwise interaction) are included in either `extra_formula` or `custom_formula`, they must first be created and included in the dataset. The function `DI_data` can be used to compute several types of species interaction variables. 
 
 ### Including treatment by species identity term interactions using `extra_formula`
 
@@ -163,12 +167,12 @@ summary(m2)
 
 ### Including treatment by species interaction terms using `extra_formula`
 
-First, we create the FG pairwise interactions, the `DI_data_FG` function.
+First, we create the FG pairwise interactions, using the `DI_data` function with the `what` argument set to `"FG"`.
 
 ```{r, echo = TRUE}
-  newlist <- DI_data_FG(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
-                        data = sim3)
-  sim3a <- data.frame(sim3, newlist$FG)
+  FG_matrix <- DI_data(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
+                       data = sim3, what = "FG")
+  sim3a <- data.frame(sim3, FG_matrix)
 ```
  
 Then we fit the model using `extra_formula`.

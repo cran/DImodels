@@ -90,9 +90,9 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
   row.names(sim3) <- NULL
 
 ## Create the functional group interaction variables
-  newlist <- DI_data_FG(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"),
-                        data = sim3)
-  sim3 <- data.frame(sim3, newlist$FG)
+  FG_matrix <- DI_data(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"),
+                        data = sim3, what = "FG")
+  sim3 <- data.frame(sim3, FG_matrix)
 
 ## To simulate the response, first create a matrix of predictors that includes p1-p9, the treatment 
 ##  and the interaction variables. 
@@ -121,7 +121,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 
 ## Load the sim3 data
   data(sim3)
-## View the first five entries
+## View the first few entries
   head(sim3)
 ## Explore the variables in sim3
   str(sim3)
@@ -162,9 +162,9 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 }
 
 ## Create the functional group interactions and store them in a new dataset
-  newlist <- DI_data_FG(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
-                        data = sim3)
-  sim3a <- data.frame(sim3, newlist$FG)
+  FG_matrix <- DI_data(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
+                        data = sim3, what = "FG")
+  sim3a <- data.frame(sim3, FG_matrix)
 
 ## Test if the FG interaction variables interact with treatment using 'extra_formula'
   m2 <- DI(y = "response", prop = 4:12, 

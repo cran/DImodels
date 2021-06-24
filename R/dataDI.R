@@ -45,13 +45,23 @@ DI_data_prepare <- function(y, block, density, prop, treat, FG = NULL, data, the
   Pind_and_prop <- get_P_indices(prop = prop, data = data)
   Pind <- Pind_and_prop$Pind
   
+  ## initial proportion checks - looking for rows where all species proportions = 0
+  prop_zero_rows <- get_zero_prop(Pind = Pind, data = data)
+  if(length(prop_zero_rows) > 0) {
+    warning("One or more rows in your dataset have ALL proportions equal to zero. They are included in the analysis, but if these rows are in your dataset in error this will affect the results.")
+    data_check <- data[- prop_zero_rows,]
+  } else {
+    data_check <- data
+  }
+  
   ## checking if the Pi's sum to 1
-  prop_check <- DI_prop_check(Pind = Pind, data = data)
+  prop_check <- DI_prop_check(Pind = Pind, data = data_check)
   if(prop_check == "error") {
     stop("One or more rows have species proportions that do not sum to 1. This must be corrected prior to analysis.\n")
   }
   if(prop_check == "minor") {
     Pi_sums <- apply(data[,Pind], 1, sum)
+    Pi_sums <- ifelse(Pi_sums == 0, 1, Pi_sums)
     data[,Pind] <- data[,Pind]/Pi_sums
     warning("One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.\n")
   }
@@ -68,8 +78,11 @@ DI_data_prepare <- function(y, block, density, prop, treat, FG = NULL, data, the
   even_flag <- E_AV$even_flag
   ## calculating the P*(1-P) (P_add) variables
   ADD <- DI_data_ADD(prop = prop, data = data, theta = theta)
-  newdata <- data.frame(newdata, ADD$ADD)
   P_int_flag <- ADD$P_int_flag
+  if(P_int_flag) {
+    ADD$ADD <- 0
+  }
+  newdata <- data.frame(newdata, ADD$ADD)
   ## calculating FG variables
   if(!is.null(FG)) FG <- DI_data_FG(prop = prop, FG = FG, data = data, theta = theta)$FG
   ## return object
@@ -162,6 +175,8 @@ DI_data_ADD <- function(prop, data, theta = 1) {
 }
 
 DI_data_FG_internal <- function(prop, FG, data) {
+  # name check
+  FG_name_check(FG = FG)
   # number of functional groups
   nfg <- length(unique(FG))
   # n for checking at the end
@@ -217,9 +232,11 @@ DI_data_FG_internal <- function(prop, FG, data) {
   ## names of FG variables
   FGeffects <- gsub(":","_", FGeffects)
   colnames(FG) <- FGeffects
-  
+
   ## final checks
-  if(n_check != ncol(FG)) {
+  if(any(table(fg_index) < 2)) {
+    return(list("FG" = FG))
+  } else if(n_check != ncol(FG)) {
     stop("Expected ", n_check, " terms, but have ", ncol(FG),
          ". Please give your functional groups a different name.",
          " One or more of the options are being used internally.",
@@ -254,4 +271,72 @@ DI_prop_check <- function(Pind, data) {
   } else if(any(pi_sums < 1 & pi_sums > .9999) | any(pi_sums > 1 & pi_sums < 1.0001)) {
     return("minor") 
   } else return("ok")
+}
+
+get_zero_prop <- function(Pind, data) {
+  props <- data[,Pind]
+  pi_zero <- apply(props, 1, function(x) all(x == 0))
+  return(which(pi_zero))
+}
+
+FG_name_check <- function(FG) {
+  cond1 <- length(grep(":", FG)) > 0
+  cond2 <- any(FG == "_")
+  cond3 <- any(FG == "i")
+  cond4 <- any(FG == "n")
+  cond5 <- any(FG == "f")
+  cond6 <- any(FG == "g")
+  cond7 <- any(FG == "_i")
+  cond8 <- any(FG == "in")
+  cond9 <- any(FG == "nf")
+  cond10 <- any(FG == "fg")
+  cond11 <- any(FG == "g_")
+  cond12 <- any(FG == "_in")
+  cond13 <- any(FG == "inf")
+  cond14 <- any(FG == "nfg")
+  cond15 <- any(FG == "fg_")
+  cond16 <- any(FG == "_inf")
+  cond17 <- any(FG == "infg")
+  cond18 <- any(FG == "nfg_")
+  cond19 <- any(FG == "_infg")
+  cond20 <- any(FG == "infg_")
+  cond21 <- any(FG == "_infg_")
+  
+  if(cond1 | cond2 | cond3 | cond4 | cond5 | cond6 | cond7 |
+     cond8 | cond9 | cond10 | cond11 | cond12 | cond13 | cond14 |
+     cond15 | cond16 | cond17 | cond18 | cond19 | cond20 | cond21) {
+    stop("Please give your functional groups a different name.",
+         " Names should not include colons (':'), or any single or multiple",
+         " character combination of the expression '_infg_'.",
+         " This expression is reserved for computing functional groups internally.")
+  }
+}
+
+DI_data <- function(prop, FG, data, theta = 1, what = c("E","AV","FG","ADD","FULL")) {
+  if(length(what) == 1) {
+    result <- switch(EXPR = what,
+                     "E" = DI_data_E_AV(prop = prop, data = data, theta = theta)$E,
+                     "AV" = DI_data_E_AV(prop = prop, data = data, theta = theta)$AV,
+                     "FG" = DI_data_FG(prop = prop, FG = FG, data = data, theta = theta)$FG,
+                     "ADD" = as.matrix(DI_data_ADD(prop = prop, data = data, theta = theta)[[1]]),
+                     "FULL" = DI_data_fullpairwise(prop = prop, data = data, theta = theta))
+  } else {
+    result <- list()
+    if("E" %in% what) {
+      result$E <- DI_data_E_AV(prop = prop, data = data, theta = theta)$E
+    }
+    if("AV" %in% what) {
+      result$AV <- DI_data_E_AV(prop = prop, data = data, theta = theta)$AV
+    }
+    if("FG" %in% what) {
+      result$FG <- DI_data_FG(prop = prop, FG = FG, data = data, theta = theta)$FG
+    }
+    if("ADD" %in% what) {
+      result$ADD <- as.matrix(DI_data_ADD(prop = prop, data = data, theta = theta)[[1]])
+    }
+    if("FULL" %in% what) {
+      result$FULL <- DI_data_fullpairwise(prop = prop, data = data, theta = theta)
+    }
+  }
+  return(result)
 }

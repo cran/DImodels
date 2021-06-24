@@ -84,8 +84,9 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
                    p4 = rep(Switzerland$p4[1:15], each = 4))
 
 ## Create the average pairwise interaction variable, with theta = 0.5
-  newlist <- DI_data_E_AV(prop=c("p1","p2","p3","p4"), data = sim2, theta = 0.5)
-  sim2 <- data.frame(sim2, "AV_theta" = newlist$AV)
+  AV_variable <- DI_data(prop = c("p1","p2","p3","p4"), data = sim2, 
+                         theta = 0.5, what = "AV")
+  sim2 <- data.frame(sim2, "AV_theta" = AV_variable)
 
 ## To simulate the response, first create a matrix of predictors that includes p1-p4 and  
 ##  the four block variables and the average pairwise interaction variable with theta=0.5.
@@ -115,7 +116,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
   
 ## Load the sim2 data
   data(sim2)
-## View the first five entries
+## View the first few entries
   head(sim2)
 ## Explore the variables in sim2
   str(sim2)
@@ -168,13 +169,12 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 ## Fit the average pairwise model, including theta, using DI and custom_formula
 ## A value of theta must be 'chosen'. Take: 0.4533437 from m1. The 'estimate_theta' option is not
 ##  available with custom_formula.
-  newlist <- DI_data_E_AV(prop = c(3:6), data = sim2, theta = 0.4533437)
-  sim2a <- data.frame(sim2, "AV_theta" = newlist$AV)
+  AV_variable <- DI_data(prop = c(3:6), data = sim2, theta = 0.4533437, what = "AV")
+  sim2a <- data.frame(sim2, "AV_theta" = AV_variable)
   m2 <- DI(y = "response", custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + AV_theta + block, 
            data = sim2a)
 ## This will adjust the standard errors in m2 for the 'estimation' of theta
   m2$df.residual <- m2$df.residual - 1
-  summary(m2)
 ## This will adjust the AIC in m2 for the 'estimation' of theta
   m2$aic <- m2$aic + 2
   summary(m2)

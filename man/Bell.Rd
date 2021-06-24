@@ -141,24 +141,21 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
   summary(Bell$response)
   plot(Bell$richness, Bell$response)
 
-## Fit the average pairwise model using DI and the AV tag, with theta = 1
-  m1 <- DI(y = "response", prop = 4:75, DImodel = "AV", estimate_theta = FALSE, data = Bell)
-  summary(m1)
 
 \donttest{
 ## This code takes around 11 seconds to run
 
 ## Fit the average pairwise model using DI and the AV tag, with theta estimated
-  m2 <- DI(y = "response", prop = 4:75, DImodel = "AV", estimate_theta = TRUE, data = Bell)
-  summary(m2)
-  CI_95 <- theta_CI(m2, conf = .95)
+  m1 <- DI(y = "response", prop = 4:75, DImodel = "AV", estimate_theta = TRUE, data = Bell)
+  summary(m1)
+  CI_95 <- theta_CI(m1, conf = .95)
   CI_95
   plot(m1)
   library(hnp)
   hnp(m1)
 ## Graph the profile likelihood
   library(ggplot2)
-  ggplot(m2$profile_loglik, aes(x = grid, y = prof)) +
+  ggplot(m1$profile_loglik, aes(x = grid, y = prof)) +
     theme_bw() +
     geom_line() +
     xlim(0,1.5) +

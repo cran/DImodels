@@ -109,7 +109,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 
 ## Load the sim4 data
   data(sim4)
-## View the first five entries
+## View the first few entries
   head(sim4)
 ## Explore the variables in sim4
   str(sim4)
@@ -159,29 +159,31 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
   hnp(m3)
 }
 
-## Create interaction variables and store them in a new dataset
-  newlist <- DI_data_prepare(prop = 3:8, FG=c("FG1","FG1","FG2","FG2","FG3","FG3"), data = sim4)
-  sim4a <- data.frame(newlist$newdata, newlist$FG)
+## Create the functional group and additive species interaction variables,
+##  and store in a new data frame called sim4a
+  newlist <- DI_data(prop = 3:8, FG=c("FG1","FG1","FG2","FG2","FG3","FG3"), 
+                     data = sim4, what = c("FG", "ADD"))
+  sim4a <- data.frame(sim4, newlist$FG, newlist$ADD)
 
-## Fit the functional group model using DI and custom_formula
-  m4 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + treatment + bfg_FG1_FG2 
-           + bfg_FG1_FG3 + bfg_FG2_FG3 + wfg_FG1 + wfg_FG2 + wfg_FG3, data = sim4a)
+## Fit the functional group model using DI and custom_formula (equivalent to m1)
+  m4 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + bfg_FG1_FG2 
+           + bfg_FG1_FG3 + bfg_FG2_FG3 + wfg_FG1 + wfg_FG2 + wfg_FG3 + treatment, data = sim4a)
   summary(m4)
 
-## Fit the additive species model using DI and custom_formula
-  m5 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + treatment + p1_add 
-           + p2_add + p3_add + p4_add + p5_add + p6_add, data = sim4a)
+## Fit the additive species model using DI and custom_formula (equivalent to m2)
+  m5 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + p1_add 
+           + p2_add + p3_add + p4_add + p5_add + p6_add + treatment, data = sim4a)
   summary(m5)
 
-## Fit the full pairwise model using DI and custom_formula
-  m6 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + treatment 
-           + (p1 + p2 + p3 + p4 + p5 + p6)^2, data = sim4a)
+## Fit the full pairwise model using DI and custom_formula (equivalent to m3)
+  m6 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 
+           + (p1 + p2 + p3 + p4 + p5 + p6)^2 + treatment, data = sim4a)
   summary(m6)
 
 ## Fit the full pairwise model using DI and the FULL tag, 
 ##  and add in a treatment by average pairwise interaction term using extra_formula.
   m7 <- DI(y = "response", prop = 3:8, treat = "treatment", DImodel = FULL, 
-           extra_formula = ~ AV:treatment, data = sim4a)
+         extra_formula = ~ AV:treatment, data = sim4a)
   summary(m7)
   
 }

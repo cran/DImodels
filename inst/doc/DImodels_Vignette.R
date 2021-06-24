@@ -58,9 +58,9 @@ m2 <- DI(y = "response", prop = 4:12,
 summary(m2)
 
 ## ---- echo = TRUE-------------------------------------------------------------
-  newlist <- DI_data_FG(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
-                        data = sim3)
-  sim3a <- data.frame(sim3, newlist$FG)
+  FG_matrix <- DI_data(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
+                       data = sim3, what = "FG")
+  sim3a <- data.frame(sim3, FG_matrix)
 
 ## ---- echo = TRUE-------------------------------------------------------------
   m3 <- DI(y = "response", prop = 4:12, 

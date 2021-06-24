@@ -6,10 +6,15 @@ import(hnp)
 import(rootSolve)
 
 export(autoDI)
-export(DI_data_prepare, DI_data_E_AV, DI_data_ADD, DI_data_FG, DI_data_fullpairwise)
+export(DI_data, DI_data_prepare, DI_data_E_AV, DI_data_ADD, DI_data_FG, DI_data_fullpairwise)
 export(DI)
 export(theta_CI)
 export(DI_compare)
+export(update_DI)
+export(extract)
+
+S3method(extract, DI)
+S3method(extract, autoDI)
 
 S3method(summary, autoDI)
 S3method(print, autoDI)

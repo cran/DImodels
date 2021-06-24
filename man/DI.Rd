@@ -100,11 +100,11 @@ This argument is chosen (over \code{custom_formula}) to fit an automated version
 }
 \item{extra_formula}{
 %%     ~~Describe \code{extra_formula} here~~
-In conjunction with \code{DImodel}, additional terms can be added using \code{extra_formula}. A \code{~} must be included before specifying the terms. For example, if \code{DImodel = "AV"} has been specified, adding \code{extra_formula = ~ I(AV**2)} will add a quadratic average pairwise interaction variable or \code{extra_formula = ~ treatment:AV} will add an interaction between the average pairwise species interaction variable and the treatment. Any variable included directly in \code{extra_formula} must already be contained in the dataset (interaction variables can be created using the functions in \code{\link{DI_data_manipulation}}, if required).  
+In conjunction with \code{DImodel}, additional terms can be added using \code{extra_formula}. A \code{~} must be included before specifying the terms. For example, if \code{DImodel = "AV"} has been specified, adding \code{extra_formula = ~ I(AV**2)} will add a quadratic average pairwise interaction variable or \code{extra_formula = ~ treatment:AV} will add an interaction between the average pairwise species interaction variable and the treatment. Any variable included directly in \code{extra_formula} must already be contained in the dataset (interaction variables can be created using the function \code{\link{DI_data}}, if required).  
 }
   \item{custom_formula}{
 %%     ~~Describe \code{custom_formula} here~~
-To specify your own DI model, write your own model formula using the \code{custom_formula} argument. The standard notation from \code{lm} and \code{glm} is used here, for example, \code{custom_formula = yield ~ 0 + p1:treatment + p2:treatment + p3:treatment + p4:treatment} will fit the DI model with the identity effects each crossed with treatment, where treatment is a variable in the dataset. The \code{custom_formula} argument is recommended when the \code{DImodel} and \code{extra_formula} arguments are not sufficient. Any variable included directly in \code{custom_formula} must be already contained in the dataset (interaction variables can be created using the functions in \code{\link{DI_data_manipulation}}, if required).  
+To specify your own DI model, write your own model formula using the \code{custom_formula} argument. The standard notation from \code{lm} and \code{glm} is used here, for example, \code{custom_formula = yield ~ 0 + p1:treatment + p2:treatment + p3:treatment + p4:treatment} will fit the DI model with the identity effects each crossed with treatment, where treatment is a variable in the dataset. The \code{custom_formula} argument is recommended when the \code{DImodel} and \code{extra_formula} arguments are not sufficient. Any variable included directly in \code{custom_formula} must be already contained in the dataset (interaction variables can be created using the function \code{\link{DI_data}}, if required).  
 }
   \item{data}{
 %%     ~~Describe \code{data} here~~
@@ -145,7 +145,7 @@ This model can be fitted using \code{DImodel} and \code{extra_formula}:
 \code{DI(y = "y", prop = c("p1", "p2", "p3"), treat = "nitrogen", DImodel = "FULL", extra_formula = ~ p1:p2:treatment + p1:p3:treatment + p2:p3:treatment, data = datasetname)} 
  
 or, by specifying all of the terms in the model using \code{custom_formula}: 
-\code{DI(custom_formula = y ~ p1 + p2 + p3 + treatment + p1:p2 + p1:p3 + p2:p3 + p1:p2:treatment + p1:p3:treatment + p2:p3:treatment, data = datasetname} 
+\code{DI(custom_formula = y ~ p1 + p2 + p3 + treatment + p1:p2 + p1:p3 + p2:p3 + p1:p2:treatment + p1:p3:treatment + p2:p3:treatment, data = datasetname)} 
  
 We recommend to use \code{DImodel} where possible, to augment with \code{extra_formula} where required, and to only use \code{custom_formula} when \code{DImodel} plus \code{extra_formula} is insufficient.  
 
@@ -200,45 +200,45 @@ The \code{\link{Switzerland}} dataset examples.
 \examples{ 
 
 ## Load the Switzerland data
-  data(Switzerland)
+data(Switzerland)
 
 ## Check that the proportions sum to 1 (required for DI models)
 ## p1 to p4 are in the 4th to 7th columns in Switzerland
-  Switzerlandsums <- rowSums(Switzerland[4:7])
-  summary(Switzerlandsums)
+Switzerlandsums <- rowSums(Switzerland[4:7])
+summary(Switzerlandsums)
 
 ## Fit the FG DImodel, with factors density and treatment, and with theta = 1
-  m1 <- DI(y = "yield", density = "density", prop = 4:7, treat = "nitrogen", 
-           FG = c("G","G","L","L"), DImodel = "FG", data = Switzerland)
-  summary(m1)
- 
+m1 <- DI(y = "yield", density = "density", prop = 4:7, treat = "nitrogen", 
+         FG = c("G","G","L","L"), DImodel = "FG", data = Switzerland)
+summary(m1)
+
 ## Fit the FG DImodel, with factors density and treatment, and theta estimated
-  m2 <- DI(y = "yield", density = "density", prop = 4:7, treat = "nitrogen", 
-           FG = c("G","G","L","L"), DImodel = "FG", data = Switzerland, estimate_theta = TRUE)
-  summary(m2)
-  
+m2 <- DI(y = "yield", density = "density", prop = 4:7, treat = "nitrogen", 
+         FG = c("G","G","L","L"), DImodel = "FG", data = Switzerland, estimate_theta = TRUE)
+summary(m2)
+
 ## Test if the identity effects interact with nitrogen (and main effect of nitrogen excluded)
-  m3 <- DI(y = "yield", density = "density", prop = 4:7, FG = c("G", "G", "L", "L"), DImodel = "FG", 
-           extra_formula = ~ (p1 + p2 + p3 + p4):nitrogen, data = Switzerland)
-  summary(m3)
+m3 <- DI(y = "yield", density = "density", prop = 4:7, FG = c("G", "G", "L", "L"), DImodel = "FG", 
+         extra_formula = ~ (p1 + p2 + p3 + p4):nitrogen, data = Switzerland)
+summary(m3)
 
 ## Fit the average pairwise model and check for a quadratic term using extra_formula.
 ## Need to create AV variable to be included in extra_formula and put in new dataset Switzerland2.
-  newlist <- DI_data_E_AV(prop = c("p1","p2","p3","p4"), data = Switzerland)
-  Switzerland2 <- data.frame(Switzerland, "AV" = newlist$AV)
+  AV_variable <- DI_data(prop = c("p1","p2","p3","p4"), data = Switzerland, what = "AV")
+  Switzerland2 <- data.frame(Switzerland, "AV" = AV_variable)
   m4 <- DI(y = "yield", density = "density", prop = 4:7, DImodel = "AV", 
            extra_formula = ~ I(AV**2), data = Switzerland2)
   summary(m4)
-  
+
 ## Using the custom_formula option to fit some, but not all, of the FG interactions.
 ## Fit the FG DImodel using custom_formula, with factors density and treatment, and theta = 1.
 ## Need to create functional group interaction variables for inclusion in custom_formulaand put
 ##  in new dataset Switzerland3.
-  newlist <- DI_data_FG(prop = 4:7, FG = c("G","G","L","L"), data = Switzerland)
-  Switzerland3 <- data.frame(Switzerland, newlist$FG)
+  FG_matrix <- DI_data(prop = 4:7, FG = c("G","G","L","L"), data = Switzerland, what = "FG")
+  Switzerland3 <- data.frame(Switzerland, FG_matrix)
   m5 <- DI(y = "yield", prop = c("p1","p2","p3","p4"), 
            custom_formula = yield ~ 0 + p1 + p2 + p3 + p4 + bfg_G_L + wfg_G 
-                            + density + nitrogen,
+           + density + nitrogen,
            data = Switzerland3)
   summary(m5)
 

@@ -82,9 +82,9 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
   sim5 <- design_a
 
 ## Create the functional group interaction variables, with theta = 0.7.
-  newlist <- DI_data_FG(prop = 3:11, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"),
-                        data = sim5, theta = 0.7)
-  sim5 <- data.frame(sim5, newlist$FG)
+  FG_matrix <- DI_data(prop = 3:11, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"),
+                        data = sim5, theta = 0.7, what = "FG")
+  sim5 <- data.frame(sim5, FG_matrix)
   names(sim5)[12:17] <- paste0(names(sim5)[12:17], "_theta")
 
 ## To simulate the response, first create a matrix of predictors that includes p1-p9, the 
@@ -114,7 +114,7 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 
 ## Load the sim5 data
   data(sim5)
-## View the first five entries
+## View the first few entries
   head(sim5)
 ## Explore the variables in sim5
   str(sim5)
@@ -170,16 +170,15 @@ Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Se
 ## Note, it is not possible to estimate theta with custom_formula (only select a 'known' value). 
 ## First, create the functional group interactions (theta value as estimated from m1), 
 ##  store them in a new dataset and rename them with a theta indicator.
-  newlist <- DI_data_FG(prop = 3:11, FG=c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
-                      theta = 0.7296887, data = sim5)
-  sim5new <- data.frame(sim5, newlist$FG)
+  FG_matrix <- DI_data(prop = 3:11, FG=c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
+                      theta = 0.7296887, data = sim5, what = "FG")
+  sim5new <- data.frame(sim5, FG_matrix)
   names(sim5new)[13:18] <- paste0(names(sim5new)[13:18], "_theta")
   m2 <- DI(custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + 
          bfg_FG1_FG2_theta + bfg_FG1_FG3_theta + bfg_FG2_FG3_theta 
          + wfg_FG1_theta + wfg_FG2_theta + wfg_FG3_theta, data = sim5new)
 ## This will adjust the standard errors in m2 for the 'estimation' of theta
   m2$df.residual <- m2$df.residual - 1
-  summary(m2)
 ## This will adjust the AIC in m2 for the 'estimation' of theta
   m2$aic <- m2$aic + 2
   summary(m2)

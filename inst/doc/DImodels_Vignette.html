@@ -208,6 +208,12 @@ hr {
 
 <p>The <code>DImodels</code> package is designed to make fitting Diversity-Interactions models easier. Diversity-Interactions (DI) models (Kirwan et al 2009) are a set of tools for analysing and interpreting data from experiments that explore the effects of species diversity (from a pool of <em>S</em> species) on community-level responses. Data suitable for DI models will include (at least) for each experimental unit: a response recorded at a point in time, and a set of proportions of <em>S</em> species  \(p_1\), \(p_2\), &hellip;, \(p_S\) from a point in time prior to the recording of the response. The proportions sum to 1 for each experimental unit.   </p>
 
+<p><strong>Main changes in the package from version 1.0 to version 1.1</strong></p>
+
+<ul>
+<li><code>DI_data_prepare</code> is now superseded by <code>DI_data</code> (see examples below)</li>
+</ul>
+
 <h2><code>DImodels</code> installation and load</h2>
 
 <p>The <code>DImodels</code> package is installed from CRAN and loaded in the typical way. </p>
@@ -619,7 +625,6 @@ plot(sim3$p1, sim3$response, xlab = &quot;Proportion of species 1&quot;, ylab = 
 #&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.
 #&gt; 
 #&gt; --------------------------------------------------------------------------------
-#&gt; 
 #&gt; Step 1: Investigating the diversity effect
 #&gt; Selection using F tests
 #&gt;            Description                                                 
@@ -646,9 +651,7 @@ plot(sim3$p1, sim3$response, xlab = &quot;Proportion of species 1&quot;, ylab = 
 #&gt; Formula:
 #&gt; response  =  p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + FG_bfg_FG1_FG2 + FG_bfg_FG1_FG3 + FG_bfg_FG2_FG3 + FG_wfg_FG1 + FG_wfg_FG2 + FG_wfg_FG3 + treatmentA
 #&gt; 
-#&gt; 
 #&gt; --------------------------------------------------------------------------------
-#&gt; 
 #&gt; Step 2: Investigating the treatment effect
 #&gt; Selection using F tests
 #&gt;            Description                                         
@@ -666,12 +669,10 @@ plot(sim3$p1, sim3$response, xlab = &quot;Proportion of species 1&quot;, ylab = 
 #&gt; Formula:
 #&gt; response  =  p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + FG_bfg_FG1_FG2 + FG_bfg_FG1_FG3 + FG_bfg_FG2_FG3 + FG_wfg_FG1 + FG_wfg_FG2 + FG_wfg_FG3 + treatmentA
 #&gt; 
-#&gt; 
 #&gt; --------------------------------------------------------------------------------
-#&gt; 
 #&gt; Step 3: Investigating whether theta is equal to 1 or not
 #&gt; 
-#&gt; Theta estimate: 0.968140012342718
+#&gt; Theta estimate: 0.9681
 #&gt; Selection using F tests
 #&gt;            Description                                                           
 #&gt; DI Model 1 Functional group effects &#39;FG&#39; DImodel with treatment                  
@@ -687,9 +688,8 @@ plot(sim3$p1, sim3$response, xlab = &quot;Proportion of species 1&quot;, ylab = 
 #&gt; Selected model: Functional group effects &#39;FG&#39; DImodel with treatment
 #&gt; 
 #&gt; --------------------------------------------------------------------------------
-#&gt; 
 #&gt; Step 4: Comparing the final selected model with the reference (community) model
-#&gt; &#39;community&#39; is a factor with100levels, one for each unique set of proportions.
+#&gt; &#39;community&#39; is a factor with 100 levels, one for each unique set of proportions.
 #&gt; 
 #&gt;                model Resid. Df Resid. SSq Resid. MSq Df      SSq     F Pr(&gt;F)
 #&gt; DI Model 1  Selected       396   559.7110     1.4134                         
@@ -697,7 +697,6 @@ plot(sim3$p1, sim3$response, xlab = &quot;Proportion of species 1&quot;, ylab = 
 #&gt; 
 #&gt; --------------------------------------------------------------------------------
 #&gt; autoDI is limited in terms of model selection. Exercise caution when choosing your final model.
-#&gt; 
 #&gt; --------------------------------------------------------------------------------
 </code></pre>
 
@@ -816,7 +815,7 @@ summary(m1)
 
 <h2>Fitting customised models using the <code>DI</code> function</h2>
 
-<p>There are two ways to fit customised models using <code>DI</code>; the first is by using the option <code>DImodel =</code> in the <code>DI</code> function and adding the argument <code>extra_formula =</code> to it, and the second is to use the <code>custom_formula</code> argument in the <code>DI</code> function. If species interaction variables (e.g., the FG interactions or the average pairwise interaction) are included in either <code>extra_formula</code> or <code>custom_formula</code>, they must first be created and included in the dataset. The function <code>DI_data_prepare</code> can be used to compute several types of species interaction variables. </p>
+<p>There are two ways to fit customised models using <code>DI</code>; the first is by using the option <code>DImodel =</code> in the <code>DI</code> function and adding the argument <code>extra_formula =</code> to it, and the second is to use the <code>custom_formula</code> argument in the <code>DI</code> function. If species interaction variables (e.g., the FG interactions or the average pairwise interaction) are included in either <code>extra_formula</code> or <code>custom_formula</code>, they must first be created and included in the dataset. The function <code>DI_data</code> can be used to compute several types of species interaction variables. </p>
 
 <h3>Including treatment by species identity term interactions using <code>extra_formula</code></h3>
 
@@ -871,11 +870,11 @@ summary(m2)
 
 <h3>Including treatment by species interaction terms using <code>extra_formula</code></h3>
 
-<p>First, we create the FG pairwise interactions, the <code>DI_data_FG</code> function.</p>
+<p>First, we create the FG pairwise interactions, using the <code>DI_data</code> function with the <code>what</code> argument set to <code>&quot;FG&quot;</code>.</p>
 
-<pre><code class="r">  newlist &lt;- DI_data_FG(prop = 4:12, FG = c(&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG2&quot;,&quot;FG2&quot;,&quot;FG3&quot;,&quot;FG3&quot;), 
-                        data = sim3)
-  sim3a &lt;- data.frame(sim3, newlist$FG)
+<pre><code class="r">  FG_matrix &lt;- DI_data(prop = 4:12, FG = c(&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG1&quot;,&quot;FG2&quot;,&quot;FG2&quot;,&quot;FG3&quot;,&quot;FG3&quot;), 
+                       data = sim3, what = &quot;FG&quot;)
+  sim3a &lt;- data.frame(sim3, FG_matrix)
 </code></pre>
 
 <p>Then we fit the model using <code>extra_formula</code>.</p>

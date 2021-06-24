@@ -4,7 +4,12 @@ DI <- function(y, block, density, prop, treat, FG, DImodel,
   DIcall <- match.call()
   # ensuring model tag is a string
   if(!missing(DImodel)) {
-    DImodel <- paste0(substitute(DImodel))
+    find_input <- try(DImodel, silent = TRUE)
+    if(class(find_input) == "try-error") {
+      DImodel <- paste0(substitute(DImodel))
+    } else {
+      DImodel <- paste0(enquote(DImodel))[2]
+    }
   }
   
   if(missing(custom_formula) & missing(y)) {
@@ -72,13 +77,13 @@ DI <- function(y, block, density, prop, treat, FG, DImodel,
     data_obj <- DI_data_prepare(y = y, block = block, density = density, prop = prop, treat = treat, FG = FG, data = data)
     newdata <- data_obj$newdata
     nSpecies <- data_obj$nSpecies
-    if(nSpecies <= 2 & length(grep(c("_E"), DImodel)) == 1) {
+    if(nSpecies <= 2 & DImodel == "E") {
       stop("you must have > 2 species to fit model ", DImodel, " (", namesub_DI(DImodel), ")")
     }
-    if(nSpecies <= 2 & length(grep(c("_AV"), DImodel)) == 1) {
+    if(nSpecies <= 2 & DImodel == "AV") {
       stop("you must have > 2 species to fit model ", DImodel, " (", namesub_DI(DImodel), ")")
     }
-    if(data_obj$P_int_flag & length(grep("_ADD", DImodel)) == 1) {
+    if(data_obj$P_int_flag & DImodel == "ADD") {
       stop("you must have > 3 species to fit model ", DImodel, " (", namesub_DI(DImodel), ")")
     }
     ## fitting the DI model
@@ -105,9 +110,9 @@ DI <- function(y, block, density, prop, treat, FG, DImodel,
   } else {
     the_DI_model <- model_fit$theta
   }
-  message("Fitted model: ", namesub_DI(DImodel), "\n", sep = "")
+  message("Fitted model: ", namesub_DI(DImodel), sep = "")
   if(estimate_theta) {
-    message("Theta estimate: ", the_DI_model$coef["theta"], "\n", sep = "")  
+    message("Theta estimate: ", round(the_DI_model$coef["theta"], 4), sep = "")  
   }
   the_DI_model$DIcall <- DIcall
   #the_DI_model$aic <- AIC2(the_DI_model)
@@ -756,4 +761,43 @@ logLik.DI <- function(object, ...) {
   attr(val, "df") <- p
   class(val) <- "logLik"
   val
+}
+
+extract <- function(obj, what = c("FULL","ADD","FG","AV","E")) {
+  UseMethod("extract")
+}
+
+extract.DI <- function(obj, what = c("FULL","ADD","FG","AV","E")) {
+  all_vars <- names(obj$data)
+  ret <- list()
+  if("E" %in% what) {
+    all_vars_end <- substr(all_vars, start = nchar(all_vars) - 1, stop = nchar(all_vars))
+    E_vars <- grep("E", all_vars_end)
+    ret$E <- obj$data[,E_vars]
+  }
+  if("AV" %in% what) {
+    all_vars_end <- substr(all_vars, start = nchar(all_vars) - 2, stop = nchar(all_vars))
+    AV_vars <- grep("AV", all_vars_end)
+    ret$AV <- obj$data[,AV_vars]
+  }
+  if("FG" %in% what) {
+    FG_vars <- grep("FG", all_vars)
+    ret$FG <- obj$data[,FG_vars]
+  }
+  if("ADD" %in% what) {
+    all_vars_end <- substr(all_vars, start = nchar(all_vars) - 3, stop = nchar(all_vars))
+    add_vars <- grep("_add", all_vars_end)
+    ret$ADD <- obj$data[,add_vars]
+  }
+  if("FULL" %in% what) {
+    all_vars <- names(obj$data)
+    pairwise_vars <- grep(":", all_vars)
+    ret$pairwise <- obj$data[,pairwise_vars]
+  }
+  return(ret)
+}
+
+extract.autoDI <- function(obj, what = c("FULL","ADD","FG","AV","E")) {
+  new_obj <- obj$selected_model_obj
+  extract.DI(obj = new_obj, what = what)
 }
