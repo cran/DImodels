@@ -1,190 +1,3 @@
-allmodels_autoDI <- function(y, block, density, prop, treat, FG, data, family, total, estimate_theta,
-                             nSpecies, treat_flag, even_flag, P_int_flag, FGnames) {
-  ## detecting pathway
-  ## if FG declared => use DI_FG, otherwise use DI_ADD
-  if(is.null(FG)) use_FG <- FALSE else use_FG <- TRUE
-  ## if treatment covariate is included, do extra test on treat removal from selected model
-  ## treat_flag = TRUE when treat is missing
-  
-  ### standard pathway
-  # STR model
-  mod_STR <- DI_STR(y = y, block = block, density = density, data = data, family = family, total = total)$model
-  # species identity model
-  mod_ID <- DI_ID(y = y, block = block, density = density, prop = prop, data = data, family = family, total = total)$model
-  # evenness model
-  if(!even_flag) {
-    mod_AV_both <- DI_AV(y = y, block = block, density = density, prop = prop, data = data, family = family,
-                       estimate_theta = estimate_theta, nSpecies = nSpecies, total = total)
-    mod_AV <- mod_AV_both$model
-  }
-  if(use_FG) {
-    # functional groups model
-    mod_FG_both <- DI_FG(y = y, block = block, density = density, prop = prop, FG = FG, data = data, family = family,
-                         estimate_theta = estimate_theta, nSpecies = nSpecies, total = total, FGnames = FGnames)
-    mod_FG <- mod_FG_both$model
-  } else {
-    # additive species contributions to interactions model
-    if(!P_int_flag) {
-      mod_ADD_both <- DI_ADD(y = y, block = block, density = density, prop = prop, data = data, family = family,
-                             estimate_theta = estimate_theta, nSpecies = nSpecies, total = total)
-      mod_ADD <- mod_ADD_both$model
-    }
-  }
-  # separate pairwise interactions model
-  fmla_FULL <- as.formula(paste("~", block, "+", density, " + (", paste(prop, collapse = "+"),")^2"))
-  X_FULL <- model.matrix(fmla_FULL, data = data)
-  X_pairwise <- X_FULL[,grep(":", colnames(X_FULL))]
-  FULL_flag <- nrow(X_FULL) > ncol(X_FULL) # check if we have enough data points to estimate FULL model; if TRUE, we're good to use this model
-  if(FULL_flag) {
-    FULL_flag <- DI_matrix_check(X_pairwise) # double-check if pairwise interactions matrix is of full rank; if TRUE, we're good to use this model
-  }
-  if(!FULL_flag) {
-    message("Not all pairwise interactions can be estimated.\nTherefore, the FULL model is not included in the selection process.\n") 
-  }
-  if(FULL_flag) {
-    mod_FULL_both <- DI_FULL(y = y, block = block, density = density, prop = prop, data = data, family = family,
-                             estimate_theta = estimate_theta, nSpecies = nSpecies, total = total)
-    mod_FULL <- mod_FULL_both$model
-    if(even_flag) {
-      model_list_theta <- list("FULL_model" = mod_FULL_both$theta)
-    } else if(use_FG) {
-      model_list_theta <- list("AV_model" = mod_AV_both$theta,
-                               "FG_model" = mod_FG_both$theta,
-                               "FULL_model" = mod_FULL_both$theta)
-    } else if(P_int_flag) {
-      model_list_theta <- list("AV_model" = mod_AV_both$theta,
-                               "FULL_model" = mod_FULL_both$theta)
-    } else {
-      model_list_theta <- list("AV_model" = mod_AV_both$theta,
-                               "ADD_model" = mod_ADD_both$theta,
-                               "FULL_model" = mod_FULL_both$theta) 
-    }
-  } else {
-    if(even_flag) {
-      model_list_theta <- list()
-    } else if(use_FG) {
-      model_list_theta <- list("AV_model" = mod_AV_both$theta,
-                               "FG_model" = mod_FG_both$theta)
-    } else if(P_int_flag) {
-      model_list_theta <- list("AV_model" = mod_AV_both$theta)
-    } else {
-      model_list_theta <- list("AV_model" = mod_AV_both$theta,
-                               "ADD_model" = mod_ADD_both$theta) 
-    }
-  }
-    
-  if(!treat_flag) {
-    ## include treatment covariate
-    # STR model
-    mod_STR_treat <- DI_STR_treat(y = y, block = block, density = density, treat = treat, data = data, family = family, total = total)$model
-    # species identity model
-    mod_ID_treat <- DI_ID_treat(y = y, block = block, density = density, prop = prop, treat = treat, data = data, family = family, total = total)$model
-    # evenness model
-    if(!even_flag) {
-      mod_AV_both_treat <- DI_AV_treat(y = y, block = block, density = density, prop = prop, treat = treat, data = data, family = family,
-                           estimate_theta = estimate_theta, nSpecies = nSpecies, total = total)
-      mod_AV_treat <- mod_AV_both_treat$model
-    }
-    if(use_FG) {
-      # functional groups model
-      mod_FG_both_treat <- DI_FG_treat(y = y, block = block, density = density, prop = prop, FG = FG, treat = treat, 
-                                 data = data, family = family, estimate_theta = estimate_theta, nSpecies = nSpecies, total = total, FGnames = FGnames)
-      mod_FG_treat <- mod_FG_both_treat$model
-    } else {
-      # additive species contributions to interactions model
-      if(!P_int_flag) {
-        mod_ADD_both_treat <- DI_ADD_treat(y = y, block = block, density = density, prop = prop, treat = treat, data = data, family = family,
-                               estimate_theta = estimate_theta, nSpecies = nSpecies, total = total)
-        mod_ADD_treat <- mod_ADD_both_treat$model
-      }
-    }
-    # separate pairwise interactions model
-    fmla_FULL_treat <- as.formula(paste("~", block, "+", density, "+", treat, " + (", paste(prop, collapse = "+"),")^2"))
-    X_FULL_treat <- model.matrix(fmla_FULL_treat, data = data)
-    X_pairwise_treat <- X_FULL_treat[,grep(":", colnames(X_FULL_treat))]
-    FULL_flag <- nrow(X_FULL_treat) > ncol(X_FULL_treat) # check if we have enough data points to estimate FULL model; if TRUE, we're good to use this model
-    if(FULL_flag) {
-      FULL_flag <- DI_matrix_check(X_pairwise_treat) # double-check if pairwise interactions matrix is of full rank; if TRUE, we're good to use this model
-    }
-    if(!FULL_flag) {
-      message("Not all pairwise interactions can be estimated.\nTherefore, the FULL model is not included in the selection process.\n") 
-    }
-    if(FULL_flag) {
-      mod_FULL_both_treat <- DI_FULL_treat(y = y, block = block, density = density, prop = prop, treat = treat, data = data, family = family,
-                                           estimate_theta = estimate_theta, nSpecies = nSpecies, total = total)
-      mod_FULL_treat <- mod_FULL_both_treat$model
-      if(even_flag) {
-        model_list_theta_treat <- list("FULL_model_treat" = mod_FULL_both_treat$theta)
-      } else if(use_FG) {
-        model_list_theta_treat <- list("AV_model_treat" = mod_AV_both_treat$theta,
-                                 "FG_model_treat" = mod_FG_both_treat$theta,
-                                 "FULL_model_treat" = mod_FULL_both_treat$theta)
-      } else if(P_int_flag) {
-        model_list_theta_treat <- list("AV_model_treat" = mod_AV_both_treat$theta,
-                                 "FULL_model_treat" = mod_FULL_both_treat$theta)
-      } else {
-        model_list_theta_treat <- list("AV_model_treat" = mod_AV_both_treat$theta,
-                                 "ADD_model_treat" = mod_ADD_both_treat$theta,
-                                 "FULL_model_treat" = mod_FULL_both_treat$theta) 
-      }
-    } else {
-      if(even_flag) {
-        model_list_theta_treat <- list()
-      } else if(use_FG) {
-        model_list_theta_treat <- list("AV_model_treat" = mod_AV_both_treat$theta,
-                                       "FG_model_treat" = mod_FG_both_treat$theta)
-      } else if(P_int_flag) {
-        model_list_theta_treat <- list("AV_model_treat" = mod_AV_both_treat$theta)
-      } else {
-        model_list_theta_treat <- list("AV_model_treat" = mod_AV_both_treat$theta,
-                                       "ADD_model_treat" = mod_ADD_both_treat$theta) 
-      }
-    }
-    
-  }
-  
-  ## obtaining the four model lists
-  ## list 1: standard models, no treatment covariate, theta = 1
-  model_list <- list("STR_model" = mod_STR,
-                     "ID_model" = mod_ID)
-  if(!even_flag) {
-    model_list$AV_model <- mod_AV
-  }
-  if(use_FG) {
-    model_list$FG_model <- mod_FG 
-  } else if(!P_int_flag) {
-    model_list$ADD_model <- mod_ADD 
-  }
-  if(FULL_flag) {
-    model_list$FULL_model <- mod_FULL
-  }
-  
-  ## list 2: models with treatment covariate, theta = 1
-  if(!treat_flag) {
-    model_list_treat <- list("STR_model_treat" = mod_STR_treat,
-                       "ID_model_treat" = mod_ID_treat)
-    if(!even_flag) {
-      model_list_treat$AV_model_treat <- mod_AV_treat
-    }
-    if(use_FG) {
-      model_list_treat$FG_model_treat <- mod_FG_treat
-    } else if(!P_int_flag) {
-      model_list_treat$ADD_model_treat <- mod_ADD_treat
-    }
-    if(FULL_flag) {
-      model_list_treat$FULL_model_treat <- mod_FULL_treat
-    }
-  }
-  
-  if(treat_flag) {
-    return(list("model_list" = model_list, "model_list_theta" = model_list_theta,
-                "model_list_treat" = list(), "model_list_theta_treat" = list()))
-  } else {
-    return(list("model_list" = model_list, "model_list_theta" = model_list_theta,
-                "model_list_treat" = model_list_treat, "model_list_theta_treat" = model_list_theta_treat))
-  }
-}
-
 namesub_autoDI <- Vectorize(function(name) {
   thename <- switch(name,
                     "STR_model" = "Structural 'STR' DImodel",
@@ -309,7 +122,7 @@ test_autoDI <- function(model_list, family, treat) {
   return(selected)
 }
 
-AICsel_autoDI <- function(model_list, mAIC, treat) {
+  AICsel_autoDI <- function(model_list, mAIC, treat) {
   message("Selection by AIC\nWarning: DI Model with the lowest AIC will be selected, even if the difference is very small.\nPlease inspect other models to see differences in AIC.", "\n\n", sep = "")
   
   model_names <- names(model_list)
@@ -516,4 +329,293 @@ autoDI_step0 <- function(y, block, density, treat, family, data) {
   on.exit(options(old))
   print(anovas_format)
   #options(scipen = 0)
+}
+
+autoDI_step1 <- function(y, block, density, prop, treat, family, data, selection) {
+  
+  model_tag <- ifelse(length(prop) == 2, "FULL", "AV")
+  
+  if(is.na(treat)) {
+      model_name <- paste0(model_tag, "_model")
+      fit_theta <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, prop = prop,
+                                       DImodel = model_tag, data = data, estimate_theta = TRUE)))
+      fit_notheta <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, prop = prop,
+                                         DImodel = model_tag, data = data, estimate_theta = FALSE)))
+      fit_theta$DIcall <- call("DI", y = y, block = block, density = density, prop = prop,
+                               DImodel = model_tag, data = data, estimate_theta = TRUE)
+      fit_notheta$DIcall <- call("DI", y = y, block = block, density = density, prop = prop,
+                                 DImodel = model_tag, data = data, estimate_theta = FALSE)
+    } else {
+      model_name <- paste0(model_tag, "_model_treat")
+      fit_theta <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, prop = prop,
+                                       treat = treat, DImodel = model_tag, data = data, estimate_theta = TRUE)))
+      fit_notheta <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, prop = prop,
+                                         treat = treat, DImodel = model_tag, data = data, estimate_theta = FALSE)))
+      fit_theta$DIcall <- call("DI", y = y, block = block, density = density, prop = prop,
+                               treat = treat, DImodel = model_tag, data = data, estimate_theta = TRUE)
+      fit_notheta$DIcall <- call("DI", y = y, block = block, density = density, prop = prop,
+                                 treat = treat, DImodel = model_tag, data = data, estimate_theta = FALSE)
+    }
+  
+  message("\n", strrep("-", getOption("width")))
+  message("Step 1: Investigating whether theta is equal to 1 or not for the ", model_tag, " model, including all available structures")
+  th <- fit_theta$coef["theta"]
+  message("\nTheta estimate: ", round(th, 4), "\n", sep = "")
+  final_model_list <- list(fit_notheta,
+                           fit_theta)
+  names(final_model_list) <- c(model_name,
+                               paste(model_name, "_theta", sep = ""))
+  
+  mAIC_final <- sapply(final_model_list, AIC2)
+  mAICc_final <- sapply(final_model_list, AICc)
+  mBIC_final <- sapply(final_model_list, BIC2)
+  mBICc_final <- sapply(final_model_list, BICc)
+  selected_model_final <- switch(selection,
+                                 Ftest = test_autoDI(model_list = final_model_list, family = family, treat = treat),
+                                 AIC = AICsel_autoDI(model_list = final_model_list, mAIC = mAIC_final, treat = treat),
+                                 AICc = AICcsel_autoDI(model_list = final_model_list, mAICc = mAICc_final, treat = treat),
+                                 BIC = BICsel_autoDI(model_list = final_model_list, mBIC = mBIC_final, treat = treat),
+                                 BICc = BICcsel_autoDI(model_list = final_model_list, mBICc = mBICc_final, treat = treat)
+  )
+  
+  theta_flag <- length(grep("theta", selected_model_final)) == 1
+  
+  if(theta_flag) conclusion <- "" else conclusion <- "not "
+  
+  message("\nThe test concludes that theta is ", conclusion, "significantly different from 1.")  
+  
+  if(theta_flag) fit_final <- fit_theta else fit_final <- fit_notheta
+  
+  return(list("model" = fit_final,
+              "model_name" = selected_model_final,
+              "theta_flag" = theta_flag))
+}
+
+autoDI_step2 <- function(y, block, density, 
+                         prop, treat, FG, 
+                         family, data, theta_flag,
+                         selection, selected_model){
+  
+  message("\n", strrep("-", getOption("width")))
+  message("Step 2: Investigating the interactions\n")
+  if(!is.na(block) & is.na(density)) message("All models include block\n")
+  if(is.na(block) & !is.na(density)) message("All models include density\n")
+  if(!is.na(block) & !is.na(density)) message("All models include block and density\n")
+  
+  AV_flag <- TRUE
+  ADD_flag <- TRUE
+  FG_flag <- TRUE
+  FULL_flag <- TRUE
+  
+  if(length(prop) == 2){
+    AV_flag <- FALSE
+    ADD_flag <- FALSE
+    FG_flag <- FALSE
+  }
+  if(length(prop) ==3){
+    ADD_flag <- FALSE
+  }
+  if(unique(is.null(FG))){
+    FG_flag <-  FALSE
+  }
+  
+  ID_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                 prop = prop, treat = treat, 
+                 data = data, DImodel = 'ID')))
+  STR_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                  prop = prop, treat = treat, 
+                  data = data, DImodel = 'STR')))
+  model_list <- list('STR_model' = STR_model, 'ID_model' = ID_model)
+  
+  if(theta_flag){
+    
+    theta_est <- coefficients(selected_model)['theta']
+    if(AV_flag){
+      AV_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                     prop = prop, treat = treat, theta = theta_est, 
+                     data = data, DImodel = 'AV')))
+      model_list[[length(model_list)+1]] <- AV_model
+      names(model_list)[length(model_list)] <- 'AV_model'
+    }
+    if(FG_flag){
+      FG_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                     prop = prop, treat = treat, theta = theta_est,  
+                     data = data, FG = FG, DImodel = 'FG')))
+      model_list[[length(model_list)+1]] <- FG_model
+      names(model_list)[length(model_list)] <- 'FG_model'
+    }
+    if(ADD_flag){
+      ADD_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                      prop = prop, treat = treat, theta = theta_est, 
+                      data = data, DImodel = 'ADD')))
+      model_list[[length(model_list)+1]] <- ADD_model
+      names(model_list)[length(model_list)] <- 'ADD_model'
+    }
+    if(FULL_flag){
+      FULL_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                       prop = prop, treat = treat, theta = theta_est, 
+                       data = data, DImodel = 'FULL')))
+      model_list[[length(model_list)+1]] <- FULL_model
+      names(model_list)[length(model_list)] <- 'FULL_model'
+    }
+    
+    if(!is.na(treat)){
+      names(model_list) <- paste0(names(model_list), '_treat')
+    }
+    names(model_list)[-c(1,2)] <- paste0(names(model_list)[-c(1,2)], '_theta')
+    
+  } else {
+    if(AV_flag){
+      AV_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                     prop = prop, treat = treat, estimate_theta = F,
+                     data = data, DImodel = 'AV')))
+      model_list[[length(model_list)+1]] <- AV_model
+      names(model_list)[length(model_list)] <- 'AV_model'
+    }
+    if(FG_flag){
+      FG_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                     prop = prop, treat = treat, estimate_theta = F, 
+                     data = data, FG = FG, DImodel = 'FG')))
+      model_list[[length(model_list)+1]] <- FG_model
+      names(model_list)[length(model_list)] <- 'FG_model'
+    }
+    if(ADD_flag){
+      ADD_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                      prop = prop, treat = treat, estimate_theta = F, 
+                      data = data, DImodel = 'ADD')))
+      model_list[[length(model_list)+1]] <- ADD_model
+      names(model_list)[length(model_list)] <- 'ADD_model'
+    } 
+    if(FULL_flag){
+      FULL_model <- suppressWarnings(suppressMessages(DI(y = y, block = block, density = density, 
+                       prop = prop, treat = treat, estimate_theta = F, 
+                       data = data, DImodel = 'FULL')))
+      model_list[[length(model_list)+1]] <- FULL_model
+      names(model_list)[length(model_list)] <- 'FULL_model'
+    }
+    
+    if(!is.na(treat)){
+      names(model_list) <- paste0(names(model_list), '_treat')
+    }
+    
+  }
+  
+  llik <- sapply(model_list, function(x) as.numeric(logLik(x)))
+  mAIC <- sapply(model_list, AIC2)
+  mAICc <- sapply(model_list, AICc)
+  mBIC <- sapply(model_list, BIC2)
+  mBICc <- sapply(model_list, BICc)
+  ndf <- sapply(model_list, function(x) length(coef(x)))
+  
+  if (selection == 'Ftest'){
+    if (!unique(is.null(FG))){
+      message("Since 'Ftest' was specified as selection criterion and functional groups were specified, dropping the ADD model as it is not nested within the FG model.")
+      model_list <- model_list[grep("^(?!ADD).*$",names(model_list), value =T, perl = T)]
+    }
+  }
+  selected_model <- switch(selection,
+                           Ftest = test_autoDI(model_list = model_list, family = family, treat = treat),
+                           AIC = AICsel_autoDI(model_list = model_list, mAIC = mAIC, treat = treat),
+                           AICc = AICcsel_autoDI(model_list = model_list, mAICc = mAICc, treat = treat),
+                           BIC = BICsel_autoDI(model_list = model_list, mBIC = mBIC, treat = treat),
+                           BICc = BICcsel_autoDI(model_list = model_list, mBICc = mBICc, treat = treat)
+  )
+  
+  if(is.null(FG)) {
+    message("\nFunctional groups (argument 'FG') were not specified, and therefore not investigated.") 
+  }
+  if(length(prop) <= 3) {
+    message("\nThe 'ADD' variables are only computed for > 3 species cases as the 'ADD' model is not informative for the 2 or 3 species case.") 
+  }
+  
+  message("\nSelected model: ",
+          namesub_autoDI(selected_model),
+          #        "Formula: ",
+          sep = "")
+  
+  fit_final <- model_list[[selected_model]]
+  estimate_theta <- theta_flag
+  DImodel <-  fit_final$DIcall$DImodel
+  the_final_model <- suppressWarnings(suppressMessages(DI(y = y, prop = prop, block = block,
+                                         FG = FG, density = density, treat = treat,
+                                         estimate_theta = estimate_theta,
+                                         DImodel = DImodel, data = data)))
+  the_final_model$DIcall$prop <- prop
+  the_final_model$DIcall$DImodel <- DImodel
+  the_final_model$DIcall$estimate_theta <- estimate_theta
+  the_final_model$DIcall$FG <- FG
+  the_final_model$DIcall$treat <- treat
+  the_final_model$DIcall$block <- block
+  the_final_model$DIcall$density <- density
+  the_final_model$DIcall$y <- y
+  the_final_model$DIcall$data <- data
+  
+  return(list('model' = the_final_model, 
+              'model_name' = selected_model))
+}
+
+autoDI_step3 <- function(selected_model, selection, family) {
+  if(length(grep("treat", selected_model$model_name)) == 0) {
+    
+    message("\n", strrep("-", getOption("width")))
+    message("Step 3: No investigation of treatment effect included, since no treatment was specified
+        (argument 'treat' omitted)")
+    fit_final <- selected_model$model
+    selected_model_final <- selected_model$model_name
+    
+  } else {
+    
+    fit_treat <- selected_model$model
+    fit_notreat <- suppressWarnings(suppressMessages(update_DI(object = fit_treat, treat = NA)))
+    
+    treat <- fit_treat$DIcall$treat
+    
+    message("\n", strrep("-", getOption("width")))
+    message("Step 3: Investigating the treatment effect\n")
+    final_model_list <- list(fit_notreat,
+                             fit_treat)
+    
+    if(length(grep("theta", selected_model$model_name)) == 1) {
+      names(final_model_list) <- c(substr(selected_model$model_name, 1, nchar(selected_model$model_name) - 12),
+                                   substr(selected_model$model_name, 1, nchar(selected_model$model_name) - 6))
+    } else {
+      names(final_model_list) <- c(substr(selected_model$model_name, 1, nchar(selected_model$model_name) - 6),
+                                   selected_model$model_name)
+    }
+    
+    mAIC_final <- sapply(final_model_list, AIC2)
+    mAICc_final <- sapply(final_model_list, AICc)
+    mBIC_final <- sapply(final_model_list, BIC2)
+    mBICc_final <- sapply(final_model_list, BICc)
+    selected_model_final <- switch(selection,
+                                   Ftest = test_autoDI(model_list = final_model_list, family = family, treat = treat),
+                                   AIC = AICsel_autoDI(model_list = final_model_list, mAIC = mAIC_final, treat = treat),
+                                   AICc = AICcsel_autoDI(model_list = final_model_list, mAICc = mAICc_final, treat = treat),
+                                   BIC = BICsel_autoDI(model_list = final_model_list, mBIC = mBIC_final, treat = treat),
+                                   BICc = BICcsel_autoDI(model_list = final_model_list, mBICc = mBICc_final, treat = treat))
+    
+    fit_final <- final_model_list[[selected_model_final]]
+    
+    message("\nSelected model: ",
+            namesub_autoDI(selected_model_final), "\n",
+            #        "Formula: ",
+            sep = "")
+  } 
+  
+  return(list("model" = fit_final,
+              "model_name" = selected_model_final))
+  
+}
+
+autoDI_step4 <- function(prop, data, selected_model, family){
+  message("\n", strrep("-", getOption("width")))
+  message("Step 4: Comparing the final selected model with the reference (community) model")
+  community <- get_community(prop = prop, data = data)
+  model_to_compare <- selected_model$model
+  model_to_compare_data <- model_to_compare$data
+  model_to_compare_data$community <- community
+  ref_model <- update(model_to_compare, . ~ . + community,
+                      data = model_to_compare_data)
+  reftest_autoDI(model_to_compare, ref_model, family)
+  
 }

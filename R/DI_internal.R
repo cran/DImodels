@@ -6,6 +6,7 @@ DI_check_and_fit <- function(fmla, y, block, density, treat, family, data, FG) {
   X_check <- DI_matrix_check(X_matrix)
   if(X_check) {
     mod <- glm(formula = fmla, family = family, data = data)
+    mod$DIcheck_formula <- fmla
   } else {
     # the lm fit gives NAs for coefficients that cannot be estimated
     fit_to_check <- lm(formula = fmla, data = data)
@@ -33,9 +34,12 @@ DI_check_and_fit <- function(fmla, y, block, density, treat, family, data, FG) {
                                  original_density_index,
                                  original_treat_index)]
     }
+    colnames(new_model_matrix) <- gsub("`", "", colnames(new_model_matrix))
     names_new_model_matrix <- paste0("`",colnames(new_model_matrix),"`")
     new_fmla <- as.formula(paste(y, "~", "0+", paste(names_new_model_matrix, collapse = "+")))
     mod <- glm(formula = new_fmla, family = family, data = new_data)
+    # RV change
+    mod$DIcheck_formula <- fmla
   }
   return(mod)
 }
@@ -106,6 +110,7 @@ proflik_theta <- function(theta, obj, family, int_terms, DImodel, nSpecies, FGna
     data_theta_ADD <- data_theta
     data_theta_ADD$y <- obj$y
     names(data_theta_ADD)[length(names(data_theta_ADD))] <- paste(old_formula[2])
+    names(data_theta_ADD) <- gsub('`','', names(data_theta_ADD))
     fitted_model_theta <- glm(as.formula(new_formula), family = family, data = data_theta_ADD)
     #mu_hat <- fitted(fitted_model_theta)
     #sigma_hat <- sqrt(sum(fitted_model_theta$residuals^2)/(fitted_model_theta$df.residual-1))
@@ -220,6 +225,7 @@ DI_theta <- function(obj, DImodel, FGnames, prop, nSpecies, family) {
     data_theta_ADD <- data_theta
     data_theta_ADD$y <- obj$y
     names(data_theta_ADD)[length(names(data_theta_ADD))] <- paste(old_formula[2])
+    names(data_theta_ADD) <- gsub('`','', names(data_theta_ADD))
     mod_theta <- glm(as.formula(new_formula), family = family, data = data_theta_ADD)
   } else {
     #mm[,int_terms] <- nSpecies/(nSpecies - 1) * (nSpecies^2 * mm[,int_terms])^theta_hat
@@ -229,6 +235,7 @@ DI_theta <- function(obj, DImodel, FGnames, prop, nSpecies, family) {
     resp_name <- paste(formula(obj))[2]
     ndata <- data.frame(obj$data[,resp_name], mm, check.names = FALSE)
     names(ndata)[1] <- resp_name
+    colnames(mm) <- paste0("`",colnames(mm),"`")
     new_formula_theta <- as.formula(paste(resp_name, "~", "0+",
                                           paste(colnames(mm)[-int_terms], collapse = "+"), "+",
                                           paste(names_mm, collapse = "+")))
@@ -245,28 +252,47 @@ DI_theta <- function(obj, DImodel, FGnames, prop, nSpecies, family) {
 
 get_theta_info <- function(upper_boundary, DImodel, obj, family, int_terms,
                            nSpecies, FGnames) {
-  theta_hat <- optimize(proflik_theta, interval = c(.01, upper_boundary), maximum = TRUE,
-                        DImodel = DImodel, obj = obj, family = family, int_terms = int_terms,
-                        nSpecies = nSpecies, FGnames = FGnames)$maximum
-  theta_grid <- seq(.01, upper_boundary + 1, length = 100)
+  optimum <- optimize(proflik_theta, interval = c(0.00001, upper_boundary), 
+                      maximum = TRUE, DImodel = DImodel, obj = obj, family = family, 
+                      int_terms = int_terms, nSpecies = nSpecies, FGnames = FGnames)
+  theta_hat <- optimum$maximum
+  theta_grid <- seq(0.00001, upper_boundary + 1, length = 100)
   proflik_theta_vec <- Vectorize(proflik_theta, "theta")
-  profile_loglik <- proflik_theta_vec(theta = theta_grid, obj = obj, family = family,
-                                      int_terms = int_terms, DImodel = DImodel,
+  profile_loglik <- proflik_theta_vec(theta = theta_grid, obj = obj, 
+                                      family = family, int_terms = int_terms, DImodel = DImodel, 
                                       nSpecies = nSpecies, FGnames = FGnames)
+  
+  # Adding theta_hat in the profile likelihood grid used for searching in the CI.
+  # This will ensure that the CI is always calculated on the estimate of theta
+  profile_loglik = data.frame(prof = c(profile_loglik, optimum$objective), 
+                              grid = c(theta_grid,theta_hat))
+  profile_loglik <- profile_loglik[order(profile_loglik$grid),]
   return(list("theta_hat" = theta_hat,
-              "profile_loglik" = data.frame("prof" = profile_loglik,
-                                            "grid" = theta_grid)))
+              "profile_loglik" = profile_loglik))
 }
 
-theta_CI <- function(obj, conf = .95) {
+theta_CI <- function(obj, conf = .95, n = 100) {
   threshold <- max(obj$profile_loglik$prof) - qchisq(conf, 1)/2
   if(threshold < min(obj$profile_loglik$prof) | threshold > max(obj$profile_loglik$prof)) {
     stop("CI cannot be computed. This is because the profile log-likelihood function is flat or displays unusual behaviour at the interval theta = (0.01, 2.5).") 
   }
   CI_finder <- approxfun(x = obj$profile_loglik$grid,
                          y = obj$profile_loglik$prof - threshold)
-  CI <- rootSolve::uniroot.all(CI_finder, interval = range(obj$profile_loglik$grid))
+  
+  CI <- rootSolve::uniroot.all(CI_finder, interval = range(obj$profile_loglik$grid), n = n)
+  
+  # Increasing n if convergence fails
+  if(length(CI) == 0){
+    CI <- rootSolve::uniroot.all(CI_finder, interval = range(obj$profile_loglik$grid), n = 100000)
+  }
+  
   alpha <- 1 - conf
+  
+  # Throw error if only one root can be returned
+  if(length(CI)!=2){
+    stop(paste0('There are convergence problems and a ', conf*100, '% CI couldn\'t be computed. Try using a lower confidence level.'))
+  }
+  
   names(CI) <- c("lower","upper")
   return(CI)
 }
@@ -312,7 +338,7 @@ get_community <- function(prop, data) {
   ## transforming into a factor
   community_factor <- as.factor(comm_id)
   ## message and return
-  message("'community' is a factor with ", n_comms, " levels, one for each unique set of proportions.\n")
+  message("'community' is a factor with ", n_comms, " levels, one for each unique set of proportions.")
   return(community_factor)
 }
 
@@ -337,7 +363,9 @@ DI_compare <- function(model, ...) {
 
 anova.DI <- function(object, ...) {
   input <- as.list(match.call())
+  #print(input)
   input <- input[-1]
+  #print(input)
   if(length(which(names(input) == "test")) > 0) input <- input[- which(names(input) == "test")]
   if(length(input) == 1) {
     stop("anova method not yet implemented for single DI model objects. You can only use the anova function to compare multiple nested DI models.")
@@ -466,6 +494,7 @@ anova_glmlist <- function (object, ..., dispersion = NULL, test = NULL) {
                      test = test))
   resdf <- as.numeric(lapply(object, function(x) x$df.residual))
   resdev <- as.numeric(lapply(object, function(x) x$deviance))
+
   if (doscore) {
     score <- numeric(nmodels)
     score[1] <- NA

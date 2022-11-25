@@ -31,7 +31,7 @@ This function will fit a wide range of Diversity-Interactions (DI) models, one a
 
 \usage{
 DI(y, block, density, prop, treat, FG, DImodel, extra_formula, custom_formula, 
-  data, estimate_theta = FALSE)
+  data, estimate_theta = FALSE, theta = 1)
 }
 
 
@@ -114,6 +114,9 @@ Specify the dataset, for example, \code{data = Switzerland}. The dataset name sh
 %%     ~~Describe \code{estimate_theta} here~~
 By default, theta (the power parameter on all \eqn{pi*pj} components of each interaction variable in the model) is set equal to one. Specify \code{estimate_theta = TRUE} to include the estimation of \eqn{\theta} in the specified model. The \code{estimate_theta} argument can only be used in conjunction with the \code{DImodel} argument; if the \code{custom_formula} is used, then theta estimation is not available and the default \code{estimate_theta = FALSE} must be used. 
 }
+  \item{theta}{
+  Users may specify a value of theta different than 1 to fit the DI model. Note that if \code{estimate_theta = TRUE}, then theta will be estimated via maximum profile log-likelihood and the value specified for \code{theta} will be overridden.
+  }
  
 }
 

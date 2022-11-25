@@ -83,14 +83,24 @@ The \code{autoDI} function identifies the 'best' Diversity-Interactions (DI) mod
 
 Steps 1-3 outlined below provide details on the automated model selection process followed by \code{autoDI}. Step 4 is a lack of fit test for the selected model. Step 0 may also be included (\code{step0 = TRUE}) as an initial step to sequentially test the inclusion of experiment structural variables (\code{block}, \code{density}, \code{treat}), prior to fitting the DI models in Step 1.
 
-All models in \code{autoDI} Steps 1 and 2 are estimated using iteratively reweighted least squares, via the glm package. Profile likelihood estimation is used in Step 3 to estimate the parameter \eqn{\theta}.
-
 The default selection method used is \code{selection = "Ftest"}, which will return the appropriate F test statistic value(s) and p-value(s) in each step. When any of the information theoretic approaches (\code{"AIC"}, \code{"AICc"}, \code{"BIC"} or \code{"BICc"}) are specified, the model with the lowest value is selected in each step, even if it is only the lowest by a tiny margin; therefore, it is recommended to examine the information theoretic values across all models.
 
- 
-\emph{Step 1} 
+\emph{Step 1}
 
-Five models are fitted, sequentially, each building on the previous model, and compared. If the experiment structural variables \code{treat}, \code{block} or \code{density} are specified, they will be included as an additive factor or covariate in \strong{each} of the five models, but interactions between them and the DI model terms will not be included or tested. 
+The AV model is fitted twice: considering the non-linear parameter \code{theta} equal to 1, and estimating it by maximising the profile likelihood. For example, for a design with 4 species, for the AV model, the parameter \code{theta} enters the model as:
+ 
+\code{AV_theta = (p1*p2)^theta + (p1*p3)^theta + (p1*p4)^theta + (p2*p3)^theta + (p2*p4)^theta + (p3*p4)^theta}
+
+In the profile likelihood estimation, \code{theta} is tested across the range 0.01 to 1.5. Then, the two models (with \code{theta} estimated and with \code{theta} set to 1) are compared using the method specified by the \code{selection} argument.
+
+Details on DI models that include \code{theta} are described in Connolly et al 2013.
+
+
+\emph{Step 2}
+
+Five models are fitted, sequentially, each building on the previous model, and compared. If in Step 1 the conclusion is that \code{theta} is not different from 1, all models are fitted without estimating \code{theta}. If, however, in Step 1 the conclusion is that \code{theta} is different from 1, all models are fitted by fixing \code{theta} to its estimate obtained in Step 1.
+
+If the experiment structural variables \code{treat}, \code{block} or \code{density} are specified, they will be included as an additive factor or covariate in \strong{each} of the five models, but interactions between them and the DI model terms will not be included or tested. 
 
 Assume that \code{FG} (functional groups) have been specified. The five DI models are:
 
@@ -107,32 +117,16 @@ If the \code{FG} argument is omitted, the \code{FG} model will be replaced by:
     \item \code{ADD}: The terms in the ID model, plus a species specific 'additive' interaction term for each species. These terms measure the interactive contribution of each species with any other species and are denoted \eqn{\lambda_i} for the \emph{i}th species. The interaction between any pair of species \emph{i} and \emph{j} is computed as \eqn{\lambda_i + \lambda_j}. 
 }
 
-
-
-
-
+If selection by information criteria is specified, both ADD and FG models will be fitted and compared using the selected information criterion.
  
-\emph{Step 2} 
+\emph{Step 3}
  
-If \code{treat} is specified, the selected model in Step 1 includes the \code{treat} variable (since all models in Step 1 include \code{treat} if present). Here, the selected model from Step 1 is re-fitted without \code{treat} and the models with and without the treatment are compared using the method specified by the \code{selection} argument.
+If \code{treat} is specified, the selected model in Step 2 includes the \code{treat} variable (since all models in Step 2 include \code{treat} if present). Here, the selected model from Step 2 is re-fitted without \code{treat} and the models with and without the treatment are compared using the method specified by the \code{selection} argument.
 
 If \code{treat} was not specified, this step is redundant.
 
 
  
-\emph{Step 3} 
- 
-For the selected model in Step 2 (or Step 1 if no \code{treat} was specified), a non-linear parameter \code{theta} is included as a power on all \eqn{pi*pj} components of each interaction variable in the model, and the models with and without \code{theta} are compared using the method specified by the \code{selection} argument. For example, for the \code{Switzerland} data, with four species, for the AV model, the parameter \code{theta} enters the model as: 
- 
-\code{AV_theta = (p1*p2)^theta + (p1*p3)^theta + (p1*p4)^theta + (p2*p3)^theta + (p2*p4)^theta + (p3*p4)^theta}
-
-In Steps 1 and 2, \code{theta} is implicitly assumed to equal 1 (since, for example, (p1*p2)^1 = p1*p2), while in Step 3, theta is estimated using profile likelihood and then assessed for a difference from 1. In the profile likelihood estimation, \code{theta} is tested across the range 0.01 to 1.5. Then, the two models (with \code{theta} estimated and with \code{theta} set to 1) are compared using the method specified by the \code{selection} argument.
-
-If there are no species interaction terms included in the best model selected in Step 1 or Step 2, this step is redundant. I.e., if there is no evidence of species interactions, then there is no need to test for \code{theta}.
-
-Details on DI models that include \code{theta} are described in Connolly et al 2013.
-
-
  
 \emph{Step 4} 
 
@@ -144,22 +138,7 @@ Note also, that the test will not work if all combinations of the species propor
 
 }
 \value{
-The function returns a list including
-\item{model_list}{a list with all fitted models without any treatment effects, with \code{estimate_theta = FALSE}}
-\item{model_list_theta}{a list with all fitted models without any treatment effects, with \code{estimate_theta = TRUE}}
-\item{model_list_treat}{a list with all fitted models including treatment effects, with \code{estimate_theta = FALSE}}
-\item{model_list_theta_treat}{a list with all fitted models including treatment effects, with \code{estimate_theta = TRUE}}
-\item{logLik}{a vector with the log-likelihood values for the fitted models}
-\item{AIC}{a vector with the AIC values for the fitted models}
-\item{AICc}{a vector with the AICc values for the fitted models}
-\item{BIC}{a vector with the BIC values for the fitted models}
-\item{BICc}{a vector with the BICc values for the fitted models}
-\item{df}{a vector with the residual d.f. values for the fitted models}
-\item{selected_model_code}{the model tag for the selected model}
-\item{selected_model}{the description of the selected model}
-\item{selected_model_obj}{the selected model object}
-\item{data}{the dataset including all manipulated variables}
-\item{family}{the \code{family} passed to \code{glm}}
+The function returns the final selected model, an object of class \code{DI}.
 }
 \references{
 %% ~put references to the literature/web site here ~
@@ -168,7 +147,7 @@ Connolly J, T Bell, T Bolger, C Brophy, T Carnus, JA Finn, L Kirwan, F Isbell, J
 Kirwan L, J Connolly, JA Finn, C Brophy, A \enc{Lüscher}{}, D Nyfeler and MT Sebastia (2009) Diversity-interaction modelling - estimating contributions of species identities and interactions to ecosystem function. Ecology, 90, 2032-2038. 
 }
 \author{
-Rafael A. Moral, John Connolly and Caroline Brophy
+Rafael A. Moral, John Connolly, Rishabh Vishwakarma and Caroline Brophy
 }
 %\note{
 %further notes

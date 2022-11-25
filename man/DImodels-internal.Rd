@@ -7,7 +7,6 @@
 \alias{BICcsel_autoDI}
 \alias{namesub_autoDI}
 \alias{namesub_DI}
-\alias{allmodels_autoDI}
 \alias{AIC2}
 \alias{AICc}
 \alias{AICc.default}
@@ -21,10 +20,14 @@
 \alias{reftest_autoDI}
 \alias{get_community}
 \alias{DI_reference}
-\alias{anova.DI}
 \alias{anovaDIglm}
 \alias{anova_glmlist}
 \alias{autoDI_step0}
+\alias{autoDI_step1}
+\alias{autoDI_step2}
+\alias{autoDI_step3}
+\alias{autoDI_step4}
+\alias{add_name_check}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Internal Functions
@@ -33,5 +36,5 @@ Internal Functions
 Internal functions used within the \code{DI} and \code{autoDI} functions.
 }
 \author{
-Rafael A. Moral, John Connolly and Caroline Brophy
+Rafael A. Moral, John Connolly, Rishabh Vishwakarma and Caroline Brophy
 }

@@ -10,18 +10,19 @@ This function allows the computation of a confidence interval for theta from a m
 A description of the non-linear parameter theta is available in Connolly et al 2013. 
 }
 \usage{
-theta_CI(obj, conf = .95)
+theta_CI(obj, conf = .95, n =100)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{obj}{DI model object.}
   \item{conf}{Confidence level of the interval. The default is 0.95.}
+  \item{n}{Number of subintervals in which the root is sought. The default is 100.}
 }
 
 \details{ 
 The confidence interval calculated here is based on the values obtained when profiling the log-likelihood function for different values of theta. It is obtained in four steps:
 
-1. define a grid of values for theta ranging from 0.01 to 2.5 of length 100
+1. define a grid of values for theta ranging from 0.01 to 2.5 of length 101 including the profile likelihood estimate of theta
 
 2. fit the DI model setting theta equal to each value in the grid and obtain the log-likelihood value corresponding to each value of theta
 

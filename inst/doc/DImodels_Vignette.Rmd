@@ -1,6 +1,6 @@
 ---
 title: "Getting Started with DImodels"
-author: "Rafael de Andrade Moral, John Connolly and Caroline Brophy"
+author: "Rafael de Andrade Moral, John Connolly, Rishabh Vishwakarma, Laura Byrne and Caroline Brophy"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 The `DImodels` package is designed to make fitting Diversity-Interactions models easier. Diversity-Interactions (DI) models (Kirwan et al 2009) are a set of tools for analysing and interpreting data from experiments that explore the effects of species diversity (from a pool of *S* species) on community-level responses. Data suitable for DI models will include (at least) for each experimental unit: a response recorded at a point in time, and a set of proportions of *S* species  $p_1$, $p_2$, ..., $p_S$ from a point in time prior to the recording of the response. The proportions sum to 1 for each experimental unit.   
 
-__Main changes in the package from version 1.0 to version 1.1__
+__Main changes in the package from version 1.0 to version 1.1 and newer__
 
 - `DI_data_prepare` is now superseded by `DI_data` (see examples below)
 
@@ -112,10 +112,10 @@ auto1 <- autoDI(y = "response", prop = 4:12, treat = "treatment",
 
 The output of `autoDI`, works through the following process:
 
-1. Step 1 compared five DI models using F tests. The models each had a different form of species interactions and treatment was always included. The functional group model (FG) was the selected model. This assumes that pairs of species interact according to functional group membership. 
-2. Step 2 provided a test for the treatment and indicated that the treatment, included as an additive factor, was significant and needed in the model (p < 0.0001).
-3. Step 3 uses profile likelihood to estimate the non-linear parameter $\theta$ and tests whether or not it differs from one. (Each model in Step 1 was fitted assuming theta equalled one.) Theta was estimated to be 0.96814 and was not significantly different from one (p = 0.4572).
-4. Step 4 provides a lack of fit test, here there was no indication of lack of fit in the model selected in Step 3 (p = 0.6423).
+1. Step 1 fitted the average interactions (`AV`) model and uses profile likelihood to estimate the non-linear parameter $\theta$ and tests whether or not it differs from one. $\theta$ was estimated to be 0.96814 and was not significantly different from one ($p = 0.4572$). Therefore, subsequent steps assumed $\theta=1$ when fitting the DI models.
+2. Step 2 fitted five different DI models, each with a different form of species interactions and treatment was always included. The functional group model (FG) was the selected model. This assumes that pairs of species interact according to functional group membership. 
+3. Step 3 provided a test for the treatment and indicated that the treatment, included as an additive factor, was significant and needed in the model ($p < 0.0001$).
+4. Step 4 provides a lack of fit test, here there was no indication of lack of fit in the model selected in Step 3 ($p = 0.6423$).
 
 Further details on each of these steps are available in the `autoDI` help file. Run the following code to access the documentation. 
 
@@ -132,7 +132,7 @@ summary(auto1)
 
 If the final model selected by autoDI includes a value of theta other than 1, then a 95% confidence interval for $\theta$ can be generated using the `theta_CI` function: 
 ```{r, eval = FALSE, echo = TRUE}
-theta_CI(auto1$selected_model_obj, conf = .95)
+theta_CI(auto1, conf = .95)
 ```
 Here, this code would not run, since the final model selected by `autoDI` does not include theta estimated. 
 
@@ -143,13 +143,18 @@ For some users, the selection process in `autoDI` will be sufficient, however, m
 ### Fitting the final model selected by `autoDI` using `DI`
 
 ```{r, echo = TRUE}
-## 
 m1 <- DI(y = "response", prop = 4:12, 
          FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), treat = "treatment", 
          DImodel = "FG", data = sim3)
 summary(m1)
 ```
 
+### Re-fitting the final model selected by `autoDI` estimating theta using `update_DI`
+
+```{r, echo = TRUE}
+m1_theta <- update_DI(object = m1, estimate_theta = TRUE)
+coef(m1_theta)
+```
 
 ## Fitting customised models using the `DI` function
 
@@ -170,20 +175,20 @@ summary(m2)
 First, we create the FG pairwise interactions, using the `DI_data` function with the `what` argument set to `"FG"`.
 
 ```{r, echo = TRUE}
-  FG_matrix <- DI_data(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
-                       data = sim3, what = "FG")
-  sim3a <- data.frame(sim3, FG_matrix)
+FG_matrix <- DI_data(prop = 4:12, FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"), 
+                     data = sim3, what = "FG")
+sim3a <- data.frame(sim3, FG_matrix)
 ```
  
 Then we fit the model using `extra_formula`.
 
 ```{r, echo = TRUE}
-  m3 <- DI(y = "response", prop = 4:12, 
-           FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"),
-           treat = "treatment", DImodel = "FG", 
-           extra_formula = ~ (bfg_FG1_FG2 + bfg_FG1_FG3 + bfg_FG2_FG3 + wfg_FG1 + wfg_FG2 
-           + wfg_FG3):treatment, data = sim3a)
-  summary(m3)
+m3 <- DI(y = "response", prop = 4:12, 
+         FG = c("FG1","FG1","FG1","FG1","FG1","FG2","FG2","FG3","FG3"),
+         treat = "treatment", DImodel = "FG", 
+         extra_formula = ~ (bfg_FG1_FG2 + bfg_FG1_FG3 + bfg_FG2_FG3 +
+                              wfg_FG1 + wfg_FG2 + wfg_FG3) : treatment, data = sim3a)
+summary(m3)
 ```
  
 ### Fitting only a subset of the FG interaction terms using `custom_formula`
@@ -191,15 +196,16 @@ Then we fit the model using `extra_formula`.
 First, we create a dummy variable for level A of the treatment (this is required for the `glm` engine that is used within `DI` and because there is no intercept in the model). 
 
 ```{r, echo = TRUE}
-sim3a$treatmentA <- as.numeric(sim3a$treatment=="A")
+sim3a$treatmentA <- as.numeric(sim3a$treatment == "A")
 ```
   
 Then we fit the model using `custom_formula`.
 
 ```{r, echo = TRUE}
-m3 <- DI(y = "response", custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 
-         + treatmentA + bfg_FG1_FG2 + bfg_FG1_FG3 + bfg_FG2_FG3, data = sim3a)
-  summary(m3)
+m3 <- DI(y = "response",
+         custom_formula = response ~ 0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 +
+           treatmentA + bfg_FG1_FG2 + bfg_FG1_FG3 + bfg_FG2_FG3, data = sim3a)
+summary(m3)
 ```
 
 

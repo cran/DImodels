@@ -85,6 +85,12 @@ DI_data_prepare <- function(y, block, density, prop, treat, FG = NULL, data, the
   newdata <- data.frame(newdata, ADD$ADD)
   ## calculating FG variables
   if(!is.null(FG)) FG <- DI_data_FG(prop = prop, FG = FG, data = data, theta = theta)$FG
+  
+  # Calculating the FULL variables
+  FULL <- DI_data_fullpairwise(prop = prop, data = data[, prop], theta = theta)
+  # Add variabes to data
+  newdata <- cbind(newdata, FULL)
+  
   ## return object
   return(list("newdata" = newdata, "y" = y, "block" = block, density = density,
               "prop" = prop, "treat" = treat, "FG" = FG,
@@ -127,6 +133,12 @@ DI_data_E_AV_internal <- function(prop, data) {
 }
 
 DI_data_E_AV <- function(prop, data, theta = 1) {
+  ########## RV change ###############
+  if (inherits(data, 'tbl')){
+    data <- as.data.frame(data)
+  }
+  
+  ####################################
   if(theta != 1) {
     data[,prop] <- data[,prop]^theta 
   }
@@ -152,20 +164,32 @@ DI_data_ADD_internal <- function(prop, data) {
 DI_data_ADD_theta <- function(prop, data, theta) {
   Pind <- get_P_indices(prop = prop, data = data)$Pind
   nSpecies <- length(prop)
-  P_matrix <- data[,Pind]
-  Pi_theta <- P_matrix^theta
-  ADD_vars_theta <- matrix(NA, ncol = nSpecies, nrow = nrow(data))
-  for(i in 1:nSpecies) {
-    sum_Pj_theta <- apply(Pi_theta[,-i], 1, sum) 
-    ADD_vars_theta[,i] <- Pi_theta[,i] * sum_Pj_theta
+  if(nSpecies > 3) {
+    P_matrix <- data[,Pind]
+    Pi_theta <- P_matrix^theta
+    ADD_vars_theta <- matrix(NA, ncol = nSpecies, nrow = nrow(data))
+    for(i in 1:nSpecies) {
+      sum_Pj_theta <- apply(Pi_theta[,-i], 1, sum) 
+      ADD_vars_theta[,i] <- Pi_theta[,i] * sum_Pj_theta
+    }
+    ADD_vars_theta <- as.data.frame(ADD_vars_theta)
+    prop_names <- names(data)[Pind]
+    names(ADD_vars_theta) <- paste(prop_names, "_add", sep = "")
+    P_int_flag <- FALSE
+  } else {
+    ADD_vars_theta <- NULL
+    P_int_flag <- TRUE
   }
-  ADD_vars_theta <- as.data.frame(ADD_vars_theta)
-  prop_names <- names(data)[Pind]
-  names(ADD_vars_theta) <- paste(prop_names, "_add", sep = "")
-  return(list("ADD_theta" = ADD_vars_theta))
+  return(list("ADD_theta" = ADD_vars_theta, "P_int_flag" = P_int_flag))
 }
 
 DI_data_ADD <- function(prop, data, theta = 1) {
+  ########## RV change ###############
+  if (inherits(data, 'tbl')){
+    data <- as.data.frame(data)
+  }
+  add_name_check(data = data)
+  ####################################
   if(theta == 1) {
     result <- DI_data_ADD_internal(prop = prop, data = data)
   } else {
@@ -247,6 +271,12 @@ DI_data_FG_internal <- function(prop, FG, data) {
 }
 
 DI_data_FG <- function(prop, FG, data, theta = 1) {
+  ########## RV change ###############
+  if (inherits(data, 'tbl')){
+    data <- as.data.frame(data)
+  }
+  
+  ####################################
   if(theta != 1) {
     data[,prop] <- data[,prop]^theta 
   }
@@ -255,11 +285,24 @@ DI_data_FG <- function(prop, FG, data, theta = 1) {
 }
 
 DI_data_fullpairwise <- function(prop, data, theta = 1) {
+  ########## RV change ###############
+  if (inherits(data, 'tbl')){
+    data <- as.data.frame(data)
+  }
+  
+  ####################################
   prop <- get_P_indices(prop = prop, data = data)$prop
   fmla <- as.formula(paste("~ 0 + ", "(", paste(prop, collapse = "+"), ")^2"))
   all_pairwise <- model.matrix(fmla, data = data)
   n_species <- length(prop)
   obj <- all_pairwise[,-c(1:n_species)]^theta
+  
+  # Special case for 2 species system
+  if(n_species == 2){
+    int <- paste(prop, collapse = ':')
+    obj <- matrix(obj, ncol = 1, dimnames = list(NULL, c(int)))
+    names(obj) <- int
+  }
   return(obj)
 }
 
@@ -312,8 +355,34 @@ FG_name_check <- function(FG) {
   }
 }
 
+############# RV change #################
+add_name_check <- function(data){
+  if (any(grepl('^.*_add', colnames(data)))){
+    stop('Certain column names cause internal conflicts when calculating additive interactions. Please rename any columns containing the string \'_add\'.')
+  }
+}
+#########################################
+
 DI_data <- function(prop, FG, data, theta = 1, what = c("E","AV","FG","ADD","FULL")) {
+  
+  ########## RV change ###############
+  if (inherits(data, 'tbl')){
+    data <- as.data.frame(data)
+  }
+  
+  ####################################
+  
   if(length(what) == 1) {
+    if("E" %in% what | "AV" %in% what) {
+      if(length(prop) <= 2) {
+        stop("You must have > 2 species to compute the 'E' or 'AV' variables") 
+      }
+    }
+    if("ADD" %in% what) {
+      if(length(prop) <= 3) {
+        stop("You must have > 3 species to compute the 'ADD' variables") 
+      }
+    }
     result <- switch(EXPR = what,
                      "E" = DI_data_E_AV(prop = prop, data = data, theta = theta)$E,
                      "AV" = DI_data_E_AV(prop = prop, data = data, theta = theta)$AV,
@@ -323,15 +392,27 @@ DI_data <- function(prop, FG, data, theta = 1, what = c("E","AV","FG","ADD","FUL
   } else {
     result <- list()
     if("E" %in% what) {
+      if(length(prop) <= 2) {
+        stop("You must have > 2 species to compute the 'E' or 'AV' variables") 
+      }
       result$E <- DI_data_E_AV(prop = prop, data = data, theta = theta)$E
     }
     if("AV" %in% what) {
+      if(length(prop) <= 2) {
+        stop("You must have > 2 species to compute the 'E' or 'AV' variables") 
+      }
       result$AV <- DI_data_E_AV(prop = prop, data = data, theta = theta)$AV
     }
     if("FG" %in% what) {
+      if(missing(FG)) {
+        stop("Please supply argument 'FG' to compute functional group variables")
+      }
       result$FG <- DI_data_FG(prop = prop, FG = FG, data = data, theta = theta)$FG
     }
     if("ADD" %in% what) {
+      if(length(prop) <= 3) {
+        stop("The 'ADD' variables are only computed for > 3 species cases as the 'ADD' model is not informative for the 2 or 3 species case") 
+      }
       result$ADD <- as.matrix(DI_data_ADD(prop = prop, data = data, theta = theta)[[1]])
     }
     if("FULL" %in% what) {
