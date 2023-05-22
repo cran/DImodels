@@ -14,10 +14,12 @@ export(DI_compare)
 export(update_DI)
 export(extract)
 export(contrasts_DI)
+export(richness_vs_DI)
 
 S3method(predict, DI)
 
 S3method(extract, DI)
+S3method(extract, autoDI)
 
 S3method(AICc, default)
 S3method(BICc, default)
