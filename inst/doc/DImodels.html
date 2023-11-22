@@ -340,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DImodels)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(DImodels)</span></code></pre></div>
 <div id="getting-started-with-dimodels" class="section level1">
 <h1>Getting Started with <code>DImodels</code></h1>
 <p>The <code>DImodels</code> package is designed to make fitting
@@ -353,8 +353,28 @@ unit: a response recorded at a point in time, and a set of proportions
 of <em>S</em> species <span class="math inline">\(p_1\)</span>, <span class="math inline">\(p_2\)</span>, …, <span class="math inline">\(p_S\)</span> from a point in time prior to the
 recording of the response. The proportions sum to 1 for each
 experimental unit.</p>
-<p><strong>Main changes in the package from version 1.0 to version 1.1
-and newer</strong></p>
+<p><strong>Main changes in the package from version 1.2 to version
+1.3</strong></p>
+<ul>
+<li>The <code>DI</code> and <code>autoDI</code> functions now have an
+additional parameter called <code>ID</code> which enables the user to
+group the species identity effects (see examples below).</li>
+<li>The <code>predict</code> function now has flexibility to calculate
+confidence and prediction intervals for the predicted values.</li>
+</ul>
+<p><strong>Main changes in the package from version 1.1 to version
+1.2</strong></p>
+<ul>
+<li>There are two new functions added to the package:
+<ul>
+<li><code>predict</code>: Make predictions from a fitted DI model
+without having to worry about theta, and the interaction terms in the
+data.</li>
+<li><code>contrasts_DI</code>: Create contrasts for a DI model.</li>
+</ul></li>
+</ul>
+<p><strong>Main changes in the package from version 1.0 to version
+1.1</strong></p>
 <ul>
 <li><code>DI_data_prepare</code> is now superseded by
 <code>DI_data</code> (see examples below)</li>
@@ -363,15 +383,15 @@ and newer</strong></p>
 <h2><code>DImodels</code> installation and load</h2>
 <p>The <code>DImodels</code> package is installed from CRAN and loaded
 in the typical way.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;DImodels&quot;</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;DImodels&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;DImodels&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;DImodels&quot;</span>)</span></code></pre></div>
 </div>
 <div id="accessing-an-introduction-to-diversity-introductions-models" class="section level2">
 <h2>Accessing an introduction to Diversity-Introductions models</h2>
 <p>It is recommended that users unfamiliar with Diversity-Interactions
 (DI) models read the introduction to <code>DImodels</code>, before using
 the package. Run the following code to access the documentation.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>?DImodels</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>?DImodels</span></code></pre></div>
 </div>
 <div id="datasets-included-in-the-dimodels-package" class="section level2">
 <h2>Datasets included in the DImodels package</h2>
@@ -381,7 +401,7 @@ the package. Run the following code to access the documentation.</p>
 <code>sim5</code>, <code>Switzerland</code>. Details about each of these
 datasets is available in their associated help files, run this code, for
 example:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>?sim3</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>?sim3</span></code></pre></div>
 <p>In this vignette, we will describe the <code>sim3</code> dataset and
 show a worked analysis of it.</p>
 </div>
@@ -598,8 +618,8 @@ community.</p>
 treatment levels, giving a total of 412 rows in the simulated dataset.
 The <code>sim3</code> data can be loaded and viewed in the usual
 way.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;sim3&quot;</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(sim3, <span class="dv">10</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;sim3&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(sim3, <span class="dv">10</span>))</span></code></pre></div>
 <table style="width:100%;">
 <colgroup>
 <col width="15%" />
@@ -791,14 +811,14 @@ way.</p>
 <h2>Exploring the data</h2>
 <p>There are several graphical displays that will help to explore the
 data and it may also be useful to generate summary statistics.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(sim3<span class="sc">$</span>response, <span class="at">xlab =</span> <span class="st">&quot;Response&quot;</span>, <span class="at">main =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">hist</span>(sim3<span class="sc">$</span>response, <span class="at">xlab =</span> <span class="st">&quot;Response&quot;</span>, <span class="at">main =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Similar graphs can also be generated for the other species proportions.</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim3<span class="sc">$</span>p1, sim3<span class="sc">$</span>response, <span class="at">xlab =</span> <span class="st">&quot;Proportion of species 1&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Response&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Similar graphs can also be generated for the other species proportions.</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">plot</span>(sim3<span class="sc">$</span>p1, sim3<span class="sc">$</span>response, <span class="at">xlab =</span> <span class="st">&quot;Proportion of species 1&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Response&quot;</span>)</span></code></pre></div>
 <p><img src="data:image/png;base64,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" /><!-- --></p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sim3<span class="sc">$</span>response)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   4.134   9.327  10.961  10.994  12.604  17.323</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">summary</span>(sim3<span class="sc">$</span>response)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;   4.134   9.327  10.961  10.994  12.604  17.323</span></span></code></pre></div>
 </div>
 <div id="implementing-an-automated-di-model-fitting-process-using-autodi" class="section level2">
 <h2>Implementing an automated DI model fitting process using
@@ -810,81 +830,81 @@ will select the ‘best’ model from the range of models that have been
 explored and test for lack of fit in that model. The selection process
 is not exhaustive, but provides a useful starting point in analysis
 using DI models.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>auto1 <span class="ot">&lt;-</span> <span class="fu">autoDI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, </span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), <span class="at">data =</span> sim3, </span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">selection =</span> <span class="st">&quot;Ftest&quot;</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Step 1: Investigating whether theta is equal to 1 or not for the AV model, including all available structures</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Theta estimate: 0.9714</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Selection using F tests</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Description                                                       </span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1 Average interactions &#39;AV&#39; DImodel with treatment                  </span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Average interactions &#39;AV&#39; DImodel with treatment, estimating theta</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            DI_model       treat estimate_theta Resid. Df Resid. SSq Resid. MSq</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1       AV &#39;treatment&#39;          FALSE       401   694.3095     1.7314</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2       AV &#39;treatment&#39;           TRUE       400   693.7321     1.7343</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Df    SSq     F Pr(&gt;F)</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1                       </span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2  1 0.5775 0.333 0.5642</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The test concludes that theta is not significantly different from 1.</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Step 2: Investigating the interactions</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Since &#39;Ftest&#39; was specified as selection criterion and functional groups were specified, dropping the ADD model as it is not nested within the FG model.</span></span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Selection using F tests</span></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Description                                                 </span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1 Structural &#39;STR&#39; DImodel with treatment                     </span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Species identity &#39;ID&#39; DImodel with treatment                </span></span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 3 Average interactions &#39;AV&#39; DImodel with treatment            </span></span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 4 Functional group effects &#39;FG&#39; DImodel with treatment        </span></span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 5 Separate pairwise interactions &#39;FULL&#39; DImodel with treatment</span></span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            DI_model       treat estimate_theta Resid. Df Resid. SSq Resid. MSq</span></span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1      STR &#39;treatment&#39;          FALSE       410  1496.1645     3.6492</span></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2       ID &#39;treatment&#39;          FALSE       402   841.2740     2.0927</span></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 3       AV &#39;treatment&#39;          FALSE       401   694.3095     1.7314</span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 4       FG &#39;treatment&#39;          FALSE       396   559.7110     1.4134</span></span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 5     FULL &#39;treatment&#39;          FALSE       366   522.9727     1.4289</span></span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Df      SSq        F  Pr(&gt;F)</span></span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1                             </span></span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2  8 654.8905  57.2903 &lt;0.0001</span></span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 3  1 146.9645 102.8524 &lt;0.0001</span></span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 4  5 134.5985  18.8396 &lt;0.0001</span></span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 5 30  36.7383    0.857   0.686</span></span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Selected model: Functional group effects &#39;FG&#39; DImodel with treatment</span></span>
-<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
-<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Step 3: Investigating the treatment effect</span></span>
-<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Selection using F tests</span></span>
-<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Description                                         </span></span>
-<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1 Functional group effects &#39;FG&#39; DImodel               </span></span>
-<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Functional group effects &#39;FG&#39; DImodel with treatment</span></span>
-<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            DI_model       treat estimate_theta Resid. Df Resid. SSq Resid. MSq</span></span>
-<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1       FG        none          FALSE       397   1550.682     3.9060</span></span>
-<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2       FG &#39;treatment&#39;          FALSE       396    559.711     1.4134</span></span>
-<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Df      SSq      F  Pr(&gt;F)</span></span>
-<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1                           </span></span>
-<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2  1 990.9711 701.12 &lt;0.0001</span></span>
-<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Selected model: Functional group effects &#39;FG&#39; DImodel with treatment</span></span>
-<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
-<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Step 4: Comparing the final selected model with the reference (community) model</span></span>
-<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &#39;community&#39; is a factor with 100 levels, one for each unique set of proportions.</span></span>
-<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                model Resid. Df Resid. SSq Resid. MSq Df      SSq     F Pr(&gt;F)</span></span>
-<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 1  Selected       396   559.7110     1.4134                         </span></span>
-<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Reference       311   445.9889     1.4340 85 113.7222 0.933 0.6423</span></span>
-<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
-<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; autoDI is limited in terms of model selection. Exercise caution when choosing your final model.</span></span>
-<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>auto1 <span class="ot">&lt;-</span> <span class="fu">autoDI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, </span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>                <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), <span class="at">data =</span> sim3, </span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>                <span class="at">selection =</span> <span class="st">&quot;Ftest&quot;</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; Step 1: Investigating whether theta is equal to 1 or not for the AV model, including all available structures</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; Theta estimate: 0.9714</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; Selection using F tests</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;            Description                                                       </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; DI Model 1 Average interactions &#39;AV&#39; DImodel with treatment                  </span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Average interactions &#39;AV&#39; DImodel with treatment, estimating theta</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt;            DI_model       treat estimate_theta Resid. Df Resid. SSq Resid. MSq</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; DI Model 1       AV &#39;treatment&#39;          FALSE       401   694.3095     1.7314</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; DI Model 2       AV &#39;treatment&#39;           TRUE       400   693.7321     1.7343</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt;            Df    SSq     F Pr(&gt;F)</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; DI Model 1                       </span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; DI Model 2  1 0.5775 0.333 0.5642</span></span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="co">#&gt; The test concludes that theta is not significantly different from 1.</span></span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; Step 2: Investigating the interactions</span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; Since &#39;Ftest&#39; was specified as selection criterion and functional groups were specified, dropping the ADD model as it is not nested within the FG model.</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; Selection using F tests</span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;            Description                                                 </span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt; DI Model 1 Structural &#39;STR&#39; DImodel with treatment                     </span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Species identity &#39;ID&#39; DImodel with treatment                </span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt; DI Model 3 Average interactions &#39;AV&#39; DImodel with treatment            </span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; DI Model 4 Functional group effects &#39;FG&#39; DImodel with treatment        </span></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; DI Model 5 Separate pairwise interactions &#39;FULL&#39; DImodel with treatment</span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt;            DI_model       treat estimate_theta Resid. Df Resid. SSq Resid. MSq</span></span>
+<span id="cb9-35"><a href="#cb9-35" tabindex="-1"></a><span class="co">#&gt; DI Model 1      STR &#39;treatment&#39;          FALSE       410  1496.1645     3.6492</span></span>
+<span id="cb9-36"><a href="#cb9-36" tabindex="-1"></a><span class="co">#&gt; DI Model 2       ID &#39;treatment&#39;          FALSE       402   841.2740     2.0927</span></span>
+<span id="cb9-37"><a href="#cb9-37" tabindex="-1"></a><span class="co">#&gt; DI Model 3       AV &#39;treatment&#39;          FALSE       401   694.3095     1.7314</span></span>
+<span id="cb9-38"><a href="#cb9-38" tabindex="-1"></a><span class="co">#&gt; DI Model 4       FG &#39;treatment&#39;          FALSE       396   559.7110     1.4134</span></span>
+<span id="cb9-39"><a href="#cb9-39" tabindex="-1"></a><span class="co">#&gt; DI Model 5     FULL &#39;treatment&#39;          FALSE       366   522.9727     1.4289</span></span>
+<span id="cb9-40"><a href="#cb9-40" tabindex="-1"></a><span class="co">#&gt;            Df      SSq        F  Pr(&gt;F)</span></span>
+<span id="cb9-41"><a href="#cb9-41" tabindex="-1"></a><span class="co">#&gt; DI Model 1                             </span></span>
+<span id="cb9-42"><a href="#cb9-42" tabindex="-1"></a><span class="co">#&gt; DI Model 2  8 654.8905  57.2903 &lt;0.0001</span></span>
+<span id="cb9-43"><a href="#cb9-43" tabindex="-1"></a><span class="co">#&gt; DI Model 3  1 146.9645 102.8524 &lt;0.0001</span></span>
+<span id="cb9-44"><a href="#cb9-44" tabindex="-1"></a><span class="co">#&gt; DI Model 4  5 134.5985  18.8396 &lt;0.0001</span></span>
+<span id="cb9-45"><a href="#cb9-45" tabindex="-1"></a><span class="co">#&gt; DI Model 5 30  36.7383    0.857   0.686</span></span>
+<span id="cb9-46"><a href="#cb9-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-47"><a href="#cb9-47" tabindex="-1"></a><span class="co">#&gt; Selected model: Functional group effects &#39;FG&#39; DImodel with treatment</span></span>
+<span id="cb9-48"><a href="#cb9-48" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-49"><a href="#cb9-49" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
+<span id="cb9-50"><a href="#cb9-50" tabindex="-1"></a><span class="co">#&gt; Step 3: Investigating the treatment effect</span></span>
+<span id="cb9-51"><a href="#cb9-51" tabindex="-1"></a><span class="co">#&gt; Selection using F tests</span></span>
+<span id="cb9-52"><a href="#cb9-52" tabindex="-1"></a><span class="co">#&gt;            Description                                         </span></span>
+<span id="cb9-53"><a href="#cb9-53" tabindex="-1"></a><span class="co">#&gt; DI Model 1 Functional group effects &#39;FG&#39; DImodel               </span></span>
+<span id="cb9-54"><a href="#cb9-54" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Functional group effects &#39;FG&#39; DImodel with treatment</span></span>
+<span id="cb9-55"><a href="#cb9-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-56"><a href="#cb9-56" tabindex="-1"></a><span class="co">#&gt;            DI_model       treat estimate_theta Resid. Df Resid. SSq Resid. MSq</span></span>
+<span id="cb9-57"><a href="#cb9-57" tabindex="-1"></a><span class="co">#&gt; DI Model 1       FG        none          FALSE       397   1550.682     3.9060</span></span>
+<span id="cb9-58"><a href="#cb9-58" tabindex="-1"></a><span class="co">#&gt; DI Model 2       FG &#39;treatment&#39;          FALSE       396    559.711     1.4134</span></span>
+<span id="cb9-59"><a href="#cb9-59" tabindex="-1"></a><span class="co">#&gt;            Df      SSq      F  Pr(&gt;F)</span></span>
+<span id="cb9-60"><a href="#cb9-60" tabindex="-1"></a><span class="co">#&gt; DI Model 1                           </span></span>
+<span id="cb9-61"><a href="#cb9-61" tabindex="-1"></a><span class="co">#&gt; DI Model 2  1 990.9711 701.12 &lt;0.0001</span></span>
+<span id="cb9-62"><a href="#cb9-62" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-63"><a href="#cb9-63" tabindex="-1"></a><span class="co">#&gt; Selected model: Functional group effects &#39;FG&#39; DImodel with treatment</span></span>
+<span id="cb9-64"><a href="#cb9-64" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-65"><a href="#cb9-65" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
+<span id="cb9-66"><a href="#cb9-66" tabindex="-1"></a><span class="co">#&gt; Step 4: Comparing the final selected model with the reference (community) model</span></span>
+<span id="cb9-67"><a href="#cb9-67" tabindex="-1"></a><span class="co">#&gt; &#39;community&#39; is a factor with 100 levels, one for each unique set of proportions.</span></span>
+<span id="cb9-68"><a href="#cb9-68" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-69"><a href="#cb9-69" tabindex="-1"></a><span class="co">#&gt;                model Resid. Df Resid. SSq Resid. MSq Df      SSq     F Pr(&gt;F)</span></span>
+<span id="cb9-70"><a href="#cb9-70" tabindex="-1"></a><span class="co">#&gt; DI Model 1  Selected       396   559.7110     1.4134                         </span></span>
+<span id="cb9-71"><a href="#cb9-71" tabindex="-1"></a><span class="co">#&gt; DI Model 2 Reference       311   445.9889     1.4340 85 113.7222 0.933 0.6423</span></span>
+<span id="cb9-72"><a href="#cb9-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-73"><a href="#cb9-73" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span>
+<span id="cb9-74"><a href="#cb9-74" tabindex="-1"></a><span class="co">#&gt; autoDI is limited in terms of model selection. Exercise caution when choosing your final model.</span></span>
+<span id="cb9-75"><a href="#cb9-75" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------------</span></span></code></pre></div>
 <p>The output of <code>autoDI</code>, works through the following
 process:</p>
 <ol style="list-style-type: decimal">
@@ -908,50 +928,50 @@ lack of fit in the model selected in Step 3 (<span class="math inline">\(p = 0.6
 <p>Further details on each of these steps are available in the
 <code>autoDI</code> help file. Run the following code to access the
 documentation.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>?autoDI</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>?autoDI</span></code></pre></div>
 <p>All parameter estimates from the selected model can be viewed using
 <code>summary</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(auto1)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -3.8425  -0.8141   0.0509   0.8048   3.5657  </span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p1               9.7497     0.3666  26.595  &lt; 2e-16 ***</span></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p2               8.5380     0.3672  23.253  &lt; 2e-16 ***</span></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p3               8.2329     0.3666  22.459  &lt; 2e-16 ***</span></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p4               6.3644     0.3665  17.368  &lt; 2e-16 ***</span></span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p5              10.8468     0.3669  29.561  &lt; 2e-16 ***</span></span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p6               5.9621     0.4515  13.205  &lt; 2e-16 ***</span></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p7               5.4252     0.4516  12.015  &lt; 2e-16 ***</span></span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p8               7.3204     0.4515  16.213  &lt; 2e-16 ***</span></span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p9               8.2154     0.4515  18.196  &lt; 2e-16 ***</span></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2   3.4395     0.8635   3.983 8.09e-05 ***</span></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3  11.5915     0.8654  13.395  &lt; 2e-16 ***</span></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3   2.8711     1.2627   2.274  0.02351 *  </span></span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1       2.8486     0.9131   3.120  0.00194 ** </span></span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2       0.6793     2.3553   0.288  0.77319    </span></span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3       2.4168     2.3286   1.038  0.29997    </span></span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; treatmentA       3.1018     0.1171  26.479  &lt; 2e-16 ***</span></span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.413412)</span></span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   559.71  on 396  degrees of freedom</span></span>
-<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AIC: 1329.4</span></span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">summary</span>(auto1)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt; -3.8425  -0.8141   0.0509   0.8048   3.5657  </span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt; p1_ID            9.7497     0.3666  26.595  &lt; 2e-16 ***</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt; p2_ID            8.5380     0.3672  23.253  &lt; 2e-16 ***</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; p3_ID            8.2329     0.3666  22.459  &lt; 2e-16 ***</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt; p4_ID            6.3644     0.3665  17.368  &lt; 2e-16 ***</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; p5_ID           10.8468     0.3669  29.561  &lt; 2e-16 ***</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; p6_ID            5.9621     0.4515  13.205  &lt; 2e-16 ***</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; p7_ID            5.4252     0.4516  12.015  &lt; 2e-16 ***</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; p8_ID            7.3204     0.4515  16.213  &lt; 2e-16 ***</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt; p9_ID            8.2154     0.4515  18.196  &lt; 2e-16 ***</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2   3.4395     0.8635   3.983 8.09e-05 ***</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3  11.5915     0.8654  13.395  &lt; 2e-16 ***</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3   2.8711     1.2627   2.274  0.02351 *  </span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1       2.8486     0.9131   3.120  0.00194 ** </span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2       0.6793     2.3553   0.288  0.77319    </span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3       2.4168     2.3286   1.038  0.29997    </span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt; treatmentA       3.1018     0.1171  26.479  &lt; 2e-16 ***</span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.413412)</span></span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   559.71  on 396  degrees of freedom</span></span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="co">#&gt; AIC: 1329.4</span></span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
 <p>If the final model selected by autoDI includes a value of theta other
 than 1, then a 95% confidence interval for <span class="math inline">\(\theta\)</span> can be generated using the
 <code>theta_CI</code> function:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">theta_CI</span>(auto1, <span class="at">conf =</span> .<span class="dv">95</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">theta_CI</span>(auto1, <span class="at">conf =</span> .<span class="dv">95</span>)</span></code></pre></div>
 <p>Here, this code would not run, since the final model selected by
 <code>autoDI</code> does not include theta estimated.</p>
 </div>
@@ -968,65 +988,108 @@ models.</p>
 <div id="fitting-the-final-model-selected-by-autodi-using-di" class="section level3">
 <h3>Fitting the final model selected by <code>autoDI</code> using
 <code>DI</code></h3>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">DImodel =</span> <span class="st">&quot;FG&quot;</span>, <span class="at">data =</span> sim3)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m1)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -3.8425  -0.8141   0.0509   0.8048   3.5657  </span></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p1               9.7497     0.3666  26.595  &lt; 2e-16 ***</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p2               8.5380     0.3672  23.253  &lt; 2e-16 ***</span></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p3               8.2329     0.3666  22.459  &lt; 2e-16 ***</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p4               6.3644     0.3665  17.368  &lt; 2e-16 ***</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p5              10.8468     0.3669  29.561  &lt; 2e-16 ***</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p6               5.9621     0.4515  13.205  &lt; 2e-16 ***</span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p7               5.4252     0.4516  12.015  &lt; 2e-16 ***</span></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p8               7.3204     0.4515  16.213  &lt; 2e-16 ***</span></span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p9               8.2154     0.4515  18.196  &lt; 2e-16 ***</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2   3.4395     0.8635   3.983 8.09e-05 ***</span></span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3  11.5915     0.8654  13.395  &lt; 2e-16 ***</span></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3   2.8711     1.2627   2.274  0.02351 *  </span></span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1       2.8486     0.9131   3.120  0.00194 ** </span></span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2       0.6793     2.3553   0.288  0.77319    </span></span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3       2.4168     2.3286   1.038  0.29997    </span></span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; treatmentA       3.1018     0.1171  26.479  &lt; 2e-16 ***</span></span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.413412)</span></span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   559.71  on 396  degrees of freedom</span></span>
-<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AIC: 1329.4</span></span>
-<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>m1 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>         <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, </span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>         <span class="at">DImodel =</span> <span class="st">&quot;FG&quot;</span>, <span class="at">data =</span> sim3)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">summary</span>(m1)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt; -3.8425  -0.8141   0.0509   0.8048   3.5657  </span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt; p1_ID            9.7497     0.3666  26.595  &lt; 2e-16 ***</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt; p2_ID            8.5380     0.3672  23.253  &lt; 2e-16 ***</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt; p3_ID            8.2329     0.3666  22.459  &lt; 2e-16 ***</span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt; p4_ID            6.3644     0.3665  17.368  &lt; 2e-16 ***</span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co">#&gt; p5_ID           10.8468     0.3669  29.561  &lt; 2e-16 ***</span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt; p6_ID            5.9621     0.4515  13.205  &lt; 2e-16 ***</span></span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt; p7_ID            5.4252     0.4516  12.015  &lt; 2e-16 ***</span></span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt; p8_ID            7.3204     0.4515  16.213  &lt; 2e-16 ***</span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="co">#&gt; p9_ID            8.2154     0.4515  18.196  &lt; 2e-16 ***</span></span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2   3.4395     0.8635   3.983 8.09e-05 ***</span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3  11.5915     0.8654  13.395  &lt; 2e-16 ***</span></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3   2.8711     1.2627   2.274  0.02351 *  </span></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1       2.8486     0.9131   3.120  0.00194 ** </span></span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2       0.6793     2.3553   0.288  0.77319    </span></span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3       2.4168     2.3286   1.038  0.29997    </span></span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a><span class="co">#&gt; treatmentA       3.1018     0.1171  26.479  &lt; 2e-16 ***</span></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.413412)</span></span>
+<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
+<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   559.71  on 396  degrees of freedom</span></span>
+<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a><span class="co">#&gt; AIC: 1329.4</span></span>
+<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
 </div>
 <div id="re-fitting-the-final-model-selected-by-autodi-estimating-theta-using-update_di" class="section level3">
 <h3>Re-fitting the final model selected by <code>autoDI</code>
 estimating theta using <code>update_DI</code></h3>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>m1_theta <span class="ot">&lt;-</span> <span class="fu">update_DI</span>(<span class="at">object =</span> m1, <span class="at">estimate_theta =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Theta estimate: 0.9681</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">coef</span>(m1_theta)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             p1             p2             p3             p4             p5 </span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      9.8128865      8.6069092      8.2968619      6.4287580     10.9110563 </span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             p6             p7             p8             p9 FG_bfg_FG1_FG2 </span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      6.0189395      5.4846833      7.4038925      8.2992262      2.9840924 </span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3 FG_bfg_FG2_FG3     FG_wfg_FG1     FG_wfg_FG2     FG_wfg_FG3 </span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     10.6019235      2.3514998      2.3737831      0.3789464      1.8470612 </span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     treatmentA          theta </span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      3.1017864      0.9681005</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>m1_theta <span class="ot">&lt;-</span> <span class="fu">update_DI</span>(<span class="at">object =</span> m1, <span class="at">estimate_theta =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; Theta estimate: 0.9681</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">coef</span>(m1_theta)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt;          p1_ID          p2_ID          p3_ID          p4_ID          p5_ID </span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt;      9.8128865      8.6069092      8.2968619      6.4287580     10.9110563 </span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;          p6_ID          p7_ID          p8_ID          p9_ID FG_bfg_FG1_FG2 </span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt;      6.0189395      5.4846833      7.4038925      8.2992262      2.9840924 </span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3 FG_bfg_FG2_FG3     FG_wfg_FG1     FG_wfg_FG2     FG_wfg_FG3 </span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt;     10.6019235      2.3514998      2.3737831      0.3789464      1.8470612 </span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt;     treatmentA          theta </span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;      3.1017864      0.9681005</span></span></code></pre></div>
+</div>
+<div id="grouping-the-species-identity-effects-in-the-model" class="section level3">
+<h3>Grouping the species identity effects in the model</h3>
+<p>The species identity effects in a DI model can be grouped by
+specifying groups for each species using the <code>ID</code> argument.
+The <code>ID</code> argument functions similar to the <code>FG</code>
+argument and accepts a character list of same length as number of
+species in the model. The identity effects of species belonging in the
+same group will be grouped together.</p>
+<p>Grouping all identity effects into a single term</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>m1_group <span class="ot">&lt;-</span> <span class="fu">update_DI</span>(<span class="at">object =</span> m1_theta, </span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>                      <span class="at">ID =</span> <span class="fu">c</span>(<span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>                             <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>))</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; Theta estimate: 0.9919</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="fu">coef</span>(m1_group)</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt;            ID1 FG_bfg_FG1_FG2 FG_bfg_FG1_FG3 FG_bfg_FG2_FG3     FG_wfg_FG1 </span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt;      7.8667702      1.1475018     12.9438529     -1.2235215      5.6141823 </span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt;     FG_wfg_FG2     FG_wfg_FG3     treatmentA          theta </span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt;     -5.5214662      1.0205019      3.1017864      0.9919097</span></span></code></pre></div>
+<p>Grouping identity effects of specific species</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>m1_group2 <span class="ot">&lt;-</span> <span class="fu">update_DI</span>(<span class="at">object =</span> m1_theta, </span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>                       <span class="at">ID =</span> <span class="fu">c</span>(<span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, <span class="st">&quot;ID1&quot;</span>, </span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>                              <span class="st">&quot;ID2&quot;</span>, <span class="st">&quot;ID2&quot;</span>, <span class="st">&quot;ID2&quot;</span>, </span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>                              <span class="st">&quot;ID3&quot;</span>, <span class="st">&quot;ID3&quot;</span>, <span class="st">&quot;ID3&quot;</span>))</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="co">#&gt; Theta estimate: 0.989</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="fu">coef</span>(m1_group2)</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="co">#&gt;            ID1            ID2            ID3 FG_bfg_FG1_FG2 FG_bfg_FG1_FG3 </span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt;      8.5288216      7.9537767      7.1357104      0.9665077     13.3434768 </span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3     FG_wfg_FG1     FG_wfg_FG2     FG_wfg_FG3     treatmentA </span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt;      0.4940952      4.1543637     -4.4683501      3.4674196      3.1017864 </span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt;          theta </span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt;      0.9889999</span></span></code></pre></div>
+<p>Note: Grouping ID effects will not have an effect on the calculation
+of the interaction effects, they would still be calculated by using all
+species.</p>
+<p>Read the documentation of <code>DI</code> and <code>autoDI</code> for
+more information and examples using the <code>ID</code> parameter.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>?DI</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>?autoDI</span></code></pre></div>
 </div>
 </div>
 <div id="fitting-customised-models-using-the-di-function" class="section level2">
@@ -1044,53 +1107,53 @@ several types of species interaction variables.</p>
 <div id="including-treatment-by-species-identity-term-interactions-using-extra_formula" class="section level3">
 <h3>Including treatment by species identity term interactions using
 <code>extra_formula</code></h3>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, </span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">DImodel =</span> <span class="st">&quot;FG&quot;</span>, <span class="at">extra_formula =</span> <span class="sc">~</span> (p1 <span class="sc">+</span> p2 <span class="sc">+</span> p3 <span class="sc">+</span> p4)<span class="sc">:</span>treatment,</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">data =</span> sim3)</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m2)</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -3.6892  -0.7859   0.0436   0.7781   3.6227  </span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p1               9.391824   0.540485  17.377  &lt; 2e-16 ***</span></span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p2               8.492825   0.540879  15.702  &lt; 2e-16 ***</span></span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p3               8.406038   0.540471  15.553  &lt; 2e-16 ***</span></span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p4               6.015296   0.540391  11.131  &lt; 2e-16 ***</span></span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p5              10.802270   0.378776  28.519  &lt; 2e-16 ***</span></span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p6               5.917565   0.461482  12.823  &lt; 2e-16 ***</span></span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p7               5.380703   0.461535  11.658  &lt; 2e-16 ***</span></span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p8               7.275881   0.461506  15.766  &lt; 2e-16 ***</span></span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p9               8.170907   0.461471  17.706  &lt; 2e-16 ***</span></span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2   3.439508   0.865279   3.975 8.38e-05 ***</span></span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3  11.591458   0.867140  13.367  &lt; 2e-16 ***</span></span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3   2.871063   1.265295   2.269  0.02381 *  </span></span>
-<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1       2.848612   0.915008   3.113  0.00199 ** </span></span>
-<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2       0.679285   2.360195   0.288  0.77365    </span></span>
-<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3       2.416774   2.333420   1.036  0.30097    </span></span>
-<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; treatmentA       3.190868   0.216493  14.739  &lt; 2e-16 ***</span></span>
-<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `p1:treatmentB`  0.626667   0.668369   0.938  0.34902    </span></span>
-<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `p2:treatmentB`  0.001213   0.668369   0.002  0.99855    </span></span>
-<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `p3:treatmentB` -0.435322   0.668369  -0.651  0.51522    </span></span>
-<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `p4:treatmentB`  0.609180   0.668369   0.911  0.36262    </span></span>
-<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.419257)</span></span>
-<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
-<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   556.35  on 392  degrees of freedom</span></span>
-<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AIC: 1335</span></span>
-<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>m2 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>         <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, </span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>         <span class="at">DImodel =</span> <span class="st">&quot;FG&quot;</span>, <span class="at">extra_formula =</span> <span class="sc">~</span> (p1 <span class="sc">+</span> p2 <span class="sc">+</span> p3 <span class="sc">+</span> p4)<span class="sc">:</span>treatment,</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>         <span class="at">data =</span> sim3)</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="fu">summary</span>(m2)</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a><span class="co">#&gt; -3.6892  -0.7859   0.0436   0.7781   3.6227  </span></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a><span class="co">#&gt;                  Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="co">#&gt; p1_ID           10.018491   0.466552  21.473  &lt; 2e-16 ***</span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="co">#&gt; p2_ID            8.494038   0.467009  18.188  &lt; 2e-16 ***</span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="co">#&gt; p3_ID            7.970716   0.466536  17.085  &lt; 2e-16 ***</span></span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a><span class="co">#&gt; p4_ID            6.624476   0.466443  14.202  &lt; 2e-16 ***</span></span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a><span class="co">#&gt; p5_ID           10.802270   0.378776  28.519  &lt; 2e-16 ***</span></span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a><span class="co">#&gt; p6_ID            5.917565   0.461482  12.823  &lt; 2e-16 ***</span></span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a><span class="co">#&gt; p7_ID            5.380703   0.461535  11.658  &lt; 2e-16 ***</span></span>
+<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a><span class="co">#&gt; p8_ID            7.275881   0.461506  15.766  &lt; 2e-16 ***</span></span>
+<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a><span class="co">#&gt; p9_ID            8.170907   0.461471  17.706  &lt; 2e-16 ***</span></span>
+<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2   3.439508   0.865279   3.975 8.38e-05 ***</span></span>
+<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3  11.591458   0.867140  13.367  &lt; 2e-16 ***</span></span>
+<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3   2.871063   1.265295   2.269  0.02381 *  </span></span>
+<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1       2.848612   0.915008   3.113  0.00199 ** </span></span>
+<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2       0.679285   2.360195   0.288  0.77365    </span></span>
+<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3       2.416774   2.333420   1.036  0.30097    </span></span>
+<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="co">#&gt; treatmentA       3.190868   0.216493  14.739  &lt; 2e-16 ***</span></span>
+<span id="cb18-34"><a href="#cb18-34" tabindex="-1"></a><span class="co">#&gt; `treatmentA:p1` -0.626667   0.668369  -0.938  0.34902    </span></span>
+<span id="cb18-35"><a href="#cb18-35" tabindex="-1"></a><span class="co">#&gt; `treatmentA:p2` -0.001213   0.668369  -0.002  0.99855    </span></span>
+<span id="cb18-36"><a href="#cb18-36" tabindex="-1"></a><span class="co">#&gt; `treatmentA:p3`  0.435322   0.668369   0.651  0.51522    </span></span>
+<span id="cb18-37"><a href="#cb18-37" tabindex="-1"></a><span class="co">#&gt; `treatmentA:p4` -0.609180   0.668369  -0.911  0.36262    </span></span>
+<span id="cb18-38"><a href="#cb18-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb18-39"><a href="#cb18-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb18-40"><a href="#cb18-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-41"><a href="#cb18-41" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.419257)</span></span>
+<span id="cb18-42"><a href="#cb18-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-43"><a href="#cb18-43" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
+<span id="cb18-44"><a href="#cb18-44" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   556.35  on 392  degrees of freedom</span></span>
+<span id="cb18-45"><a href="#cb18-45" tabindex="-1"></a><span class="co">#&gt; AIC: 1335</span></span>
+<span id="cb18-46"><a href="#cb18-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb18-47"><a href="#cb18-47" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
 </div>
 <div id="including-treatment-by-species-interaction-terms-using-extra_formula" class="section level3">
 <h3>Including treatment by species interaction terms using
@@ -1098,60 +1161,60 @@ several types of species interaction variables.</p>
 <p>First, we create the FG pairwise interactions, using the
 <code>DI_data</code> function with the <code>what</code> argument set to
 <code>&quot;FG&quot;</code>.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>FG_matrix <span class="ot">&lt;-</span> <span class="fu">DI_data</span>(<span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">data =</span> sim3, <span class="at">what =</span> <span class="st">&quot;FG&quot;</span>)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>sim3a <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(sim3, FG_matrix)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>FG_matrix <span class="ot">&lt;-</span> <span class="fu">DI_data</span>(<span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>), </span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>                     <span class="at">data =</span> sim3, <span class="at">what =</span> <span class="st">&quot;FG&quot;</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>sim3a <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(sim3, FG_matrix)</span></code></pre></div>
 <p>Then we fit the model using <code>extra_formula</code>.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>m3 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>),</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, <span class="at">DImodel =</span> <span class="st">&quot;FG&quot;</span>, </span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">extra_formula =</span> <span class="sc">~</span> (bfg_FG1_FG2 <span class="sc">+</span> bfg_FG1_FG3 <span class="sc">+</span> bfg_FG2_FG3 <span class="sc">+</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                              wfg_FG1 <span class="sc">+</span> wfg_FG2 <span class="sc">+</span> wfg_FG3) <span class="sc">:</span> treatment, <span class="at">data =</span> sim3a)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m3)</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -3.8251  -0.8208   0.0554   0.7982   3.4218  </span></span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                          Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p1                        9.68668    0.40000  24.217  &lt; 2e-16 ***</span></span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p2                        8.47495    0.40053  21.159  &lt; 2e-16 ***</span></span>
-<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p3                        8.16990    0.39998  20.426  &lt; 2e-16 ***</span></span>
-<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p4                        6.30140    0.39987  15.759  &lt; 2e-16 ***</span></span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p5                       10.78379    0.40031  26.938  &lt; 2e-16 ***</span></span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p6                        5.89908    0.47958  12.301  &lt; 2e-16 ***</span></span>
-<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p7                        5.36222    0.47963  11.180  &lt; 2e-16 ***</span></span>
-<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p8                        7.25740    0.47960  15.132  &lt; 2e-16 ***</span></span>
-<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p9                        8.15243    0.47957  17.000  &lt; 2e-16 ***</span></span>
-<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2            4.00191    1.12383   3.561 0.000415 ***</span></span>
-<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3           11.77389    1.12973  10.422  &lt; 2e-16 ***</span></span>
-<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3            3.83681    1.64287   2.335 0.020027 *  </span></span>
-<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1                2.81860    1.16226   2.425 0.015757 *  </span></span>
-<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2               -1.58378    3.11717  -0.508 0.611682    </span></span>
-<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3                1.32358    3.07561   0.430 0.667181    </span></span>
-<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; treatmentA                3.22783    0.33480   9.641  &lt; 2e-16 ***</span></span>
-<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `treatmentA:bfg_FG1_FG2` -1.12480    1.43053  -0.786 0.432178    </span></span>
-<span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `treatmentA:bfg_FG1_FG3` -0.36487    1.44450  -0.253 0.800717    </span></span>
-<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `treatmentA:bfg_FG2_FG3` -1.93150    2.09024  -0.924 0.356029    </span></span>
-<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `treatmentA:wfg_FG1`      0.06003    1.42911   0.042 0.966517    </span></span>
-<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `treatmentA:wfg_FG2`      4.52613    4.06260   1.114 0.265924    </span></span>
-<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; `treatmentA:wfg_FG3`      2.18638    3.99748   0.547 0.584733    </span></span>
-<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.42436)</span></span>
-<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.3  on 412  degrees of freedom</span></span>
-<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   555.5  on 390  degrees of freedom</span></span>
-<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AIC: 1338.3</span></span>
-<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>m3 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>         <span class="at">FG =</span> <span class="fu">c</span>(<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG1&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG2&quot;</span>,<span class="st">&quot;FG3&quot;</span>,<span class="st">&quot;FG3&quot;</span>),</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>         <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, <span class="at">DImodel =</span> <span class="st">&quot;FG&quot;</span>, </span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>         <span class="at">extra_formula =</span> <span class="sc">~</span> (bfg_FG1_FG2 <span class="sc">+</span> bfg_FG1_FG3 <span class="sc">+</span> bfg_FG2_FG3 <span class="sc">+</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>                              wfg_FG1 <span class="sc">+</span> wfg_FG2 <span class="sc">+</span> wfg_FG3) <span class="sc">:</span> treatment, <span class="at">data =</span> sim3a)</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="co">#&gt; Fitted model: Functional group effects &#39;FG&#39; DImodel</span></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="fu">summary</span>(m3)</span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="co">#&gt; glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="co">#&gt; -3.8251  -0.8208   0.0554   0.7982   3.4218  </span></span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a><span class="co">#&gt;                          Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a><span class="co">#&gt; p1_ID                     9.68668    0.40000  24.217  &lt; 2e-16 ***</span></span>
+<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a><span class="co">#&gt; p2_ID                     8.47495    0.40053  21.159  &lt; 2e-16 ***</span></span>
+<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a><span class="co">#&gt; p3_ID                     8.16990    0.39998  20.426  &lt; 2e-16 ***</span></span>
+<span id="cb20-22"><a href="#cb20-22" tabindex="-1"></a><span class="co">#&gt; p4_ID                     6.30140    0.39987  15.759  &lt; 2e-16 ***</span></span>
+<span id="cb20-23"><a href="#cb20-23" tabindex="-1"></a><span class="co">#&gt; p5_ID                    10.78379    0.40031  26.938  &lt; 2e-16 ***</span></span>
+<span id="cb20-24"><a href="#cb20-24" tabindex="-1"></a><span class="co">#&gt; p6_ID                     5.89908    0.47958  12.301  &lt; 2e-16 ***</span></span>
+<span id="cb20-25"><a href="#cb20-25" tabindex="-1"></a><span class="co">#&gt; p7_ID                     5.36222    0.47963  11.180  &lt; 2e-16 ***</span></span>
+<span id="cb20-26"><a href="#cb20-26" tabindex="-1"></a><span class="co">#&gt; p8_ID                     7.25740    0.47960  15.132  &lt; 2e-16 ***</span></span>
+<span id="cb20-27"><a href="#cb20-27" tabindex="-1"></a><span class="co">#&gt; p9_ID                     8.15243    0.47957  17.000  &lt; 2e-16 ***</span></span>
+<span id="cb20-28"><a href="#cb20-28" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG2            4.00191    1.12383   3.561 0.000415 ***</span></span>
+<span id="cb20-29"><a href="#cb20-29" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG1_FG3           11.77389    1.12973  10.422  &lt; 2e-16 ***</span></span>
+<span id="cb20-30"><a href="#cb20-30" tabindex="-1"></a><span class="co">#&gt; FG_bfg_FG2_FG3            3.83681    1.64287   2.335 0.020027 *  </span></span>
+<span id="cb20-31"><a href="#cb20-31" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG1                2.81860    1.16226   2.425 0.015757 *  </span></span>
+<span id="cb20-32"><a href="#cb20-32" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG2               -1.58378    3.11717  -0.508 0.611682    </span></span>
+<span id="cb20-33"><a href="#cb20-33" tabindex="-1"></a><span class="co">#&gt; FG_wfg_FG3                1.32358    3.07561   0.430 0.667181    </span></span>
+<span id="cb20-34"><a href="#cb20-34" tabindex="-1"></a><span class="co">#&gt; treatmentA                3.22783    0.33480   9.641  &lt; 2e-16 ***</span></span>
+<span id="cb20-35"><a href="#cb20-35" tabindex="-1"></a><span class="co">#&gt; `treatmentA:bfg_FG1_FG2` -1.12480    1.43053  -0.786 0.432178    </span></span>
+<span id="cb20-36"><a href="#cb20-36" tabindex="-1"></a><span class="co">#&gt; `treatmentA:bfg_FG1_FG3` -0.36487    1.44450  -0.253 0.800717    </span></span>
+<span id="cb20-37"><a href="#cb20-37" tabindex="-1"></a><span class="co">#&gt; `treatmentA:bfg_FG2_FG3` -1.93150    2.09024  -0.924 0.356029    </span></span>
+<span id="cb20-38"><a href="#cb20-38" tabindex="-1"></a><span class="co">#&gt; `treatmentA:wfg_FG1`      0.06003    1.42911   0.042 0.966517    </span></span>
+<span id="cb20-39"><a href="#cb20-39" tabindex="-1"></a><span class="co">#&gt; `treatmentA:wfg_FG2`      4.52613    4.06260   1.114 0.265924    </span></span>
+<span id="cb20-40"><a href="#cb20-40" tabindex="-1"></a><span class="co">#&gt; `treatmentA:wfg_FG3`      2.18638    3.99748   0.547 0.584733    </span></span>
+<span id="cb20-41"><a href="#cb20-41" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb20-42"><a href="#cb20-42" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb20-43"><a href="#cb20-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-44"><a href="#cb20-44" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.42436)</span></span>
+<span id="cb20-45"><a href="#cb20-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-46"><a href="#cb20-46" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.3  on 412  degrees of freedom</span></span>
+<span id="cb20-47"><a href="#cb20-47" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   555.5  on 390  degrees of freedom</span></span>
+<span id="cb20-48"><a href="#cb20-48" tabindex="-1"></a><span class="co">#&gt; AIC: 1338.3</span></span>
+<span id="cb20-49"><a href="#cb20-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb20-50"><a href="#cb20-50" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
 </div>
 <div id="fitting-only-a-subset-of-the-fg-interaction-terms-using-custom_formula" class="section level3">
 <h3>Fitting only a subset of the FG interaction terms using
@@ -1159,46 +1222,210 @@ several types of species interaction variables.</p>
 <p>First, we create a dummy variable for level A of the treatment (this
 is required for the <code>glm</code> engine that is used within
 <code>DI</code> and because there is no intercept in the model).</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>sim3a<span class="sc">$</span>treatmentA <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(sim3a<span class="sc">$</span>treatment <span class="sc">==</span> <span class="st">&quot;A&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>sim3a<span class="sc">$</span>treatmentA <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(sim3a<span class="sc">$</span>treatment <span class="sc">==</span> <span class="st">&quot;A&quot;</span>)</span></code></pre></div>
 <p>Then we fit the model using <code>custom_formula</code>.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>m3 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>,</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">custom_formula =</span> response <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> p1 <span class="sc">+</span> p2 <span class="sc">+</span> p3 <span class="sc">+</span> p4 <span class="sc">+</span> p5 <span class="sc">+</span> p6 <span class="sc">+</span> p7 <span class="sc">+</span> p8 <span class="sc">+</span> p9 <span class="sc">+</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>           treatmentA <span class="sc">+</span> bfg_FG1_FG2 <span class="sc">+</span> bfg_FG1_FG3 <span class="sc">+</span> bfg_FG2_FG3, <span class="at">data =</span> sim3a)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fitted model: Custom DI model</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(m3)</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; glm(formula = custom_formula, family = family, data = data)</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -4.0272  -0.7831   0.0404   0.7570   3.7016  </span></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p1           10.3417     0.3138  32.957  &lt; 2e-16 ***</span></span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p2            9.1766     0.3103  29.573  &lt; 2e-16 ***</span></span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p3            8.8268     0.3134  28.164  &lt; 2e-16 ***</span></span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p4            6.9742     0.3122  22.341  &lt; 2e-16 ***</span></span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p5           11.4422     0.3141  36.426  &lt; 2e-16 ***</span></span>
-<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p6            5.9177     0.3994  14.815  &lt; 2e-16 ***</span></span>
-<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p7            5.3967     0.3999  13.496  &lt; 2e-16 ***</span></span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p8            7.4468     0.3983  18.695  &lt; 2e-16 ***</span></span>
-<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p9            8.3449     0.3984  20.945  &lt; 2e-16 ***</span></span>
-<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; treatmentA    3.1018     0.1184  26.198  &lt; 2e-16 ***</span></span>
-<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; bfg_FG1_FG2   2.9359     0.8042   3.651 0.000296 ***</span></span>
-<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; bfg_FG1_FG3  10.8896     0.8343  13.053  &lt; 2e-16 ***</span></span>
-<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; bfg_FG2_FG3   2.9410     1.2233   2.404 0.016667 *  </span></span>
-<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.443887)</span></span>
-<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
-<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   576.11  on 399  degrees of freedom</span></span>
-<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AIC: 1335.3</span></span>
-<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>m3 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>,</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>         <span class="at">custom_formula =</span> response <span class="sc">~</span> <span class="dv">0</span> <span class="sc">+</span> p1 <span class="sc">+</span> p2 <span class="sc">+</span> p3 <span class="sc">+</span> p4 <span class="sc">+</span> p5 <span class="sc">+</span> p6 <span class="sc">+</span> p7 <span class="sc">+</span> p8 <span class="sc">+</span> p9 <span class="sc">+</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>           treatmentA <span class="sc">+</span> bfg_FG1_FG2 <span class="sc">+</span> bfg_FG1_FG3 <span class="sc">+</span> bfg_FG2_FG3, <span class="at">data =</span> sim3a)</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt; Fitted model: Custom DI model</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="fu">summary</span>(m3)</span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a><span class="co">#&gt; glm(formula = custom_formula, family = family, data = data)</span></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a><span class="co">#&gt; Deviance Residuals: </span></span>
+<span id="cb22-11"><a href="#cb22-11" tabindex="-1"></a><span class="co">#&gt;     Min       1Q   Median       3Q      Max  </span></span>
+<span id="cb22-12"><a href="#cb22-12" tabindex="-1"></a><span class="co">#&gt; -4.0272  -0.7831   0.0404   0.7570   3.7016  </span></span>
+<span id="cb22-13"><a href="#cb22-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-14"><a href="#cb22-14" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb22-15"><a href="#cb22-15" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb22-16"><a href="#cb22-16" tabindex="-1"></a><span class="co">#&gt; p1           10.3417     0.3138  32.957  &lt; 2e-16 ***</span></span>
+<span id="cb22-17"><a href="#cb22-17" tabindex="-1"></a><span class="co">#&gt; p2            9.1766     0.3103  29.573  &lt; 2e-16 ***</span></span>
+<span id="cb22-18"><a href="#cb22-18" tabindex="-1"></a><span class="co">#&gt; p3            8.8268     0.3134  28.164  &lt; 2e-16 ***</span></span>
+<span id="cb22-19"><a href="#cb22-19" tabindex="-1"></a><span class="co">#&gt; p4            6.9742     0.3122  22.341  &lt; 2e-16 ***</span></span>
+<span id="cb22-20"><a href="#cb22-20" tabindex="-1"></a><span class="co">#&gt; p5           11.4422     0.3141  36.426  &lt; 2e-16 ***</span></span>
+<span id="cb22-21"><a href="#cb22-21" tabindex="-1"></a><span class="co">#&gt; p6            5.9177     0.3994  14.815  &lt; 2e-16 ***</span></span>
+<span id="cb22-22"><a href="#cb22-22" tabindex="-1"></a><span class="co">#&gt; p7            5.3967     0.3999  13.496  &lt; 2e-16 ***</span></span>
+<span id="cb22-23"><a href="#cb22-23" tabindex="-1"></a><span class="co">#&gt; p8            7.4468     0.3983  18.695  &lt; 2e-16 ***</span></span>
+<span id="cb22-24"><a href="#cb22-24" tabindex="-1"></a><span class="co">#&gt; p9            8.3449     0.3984  20.945  &lt; 2e-16 ***</span></span>
+<span id="cb22-25"><a href="#cb22-25" tabindex="-1"></a><span class="co">#&gt; treatmentA    3.1018     0.1184  26.198  &lt; 2e-16 ***</span></span>
+<span id="cb22-26"><a href="#cb22-26" tabindex="-1"></a><span class="co">#&gt; bfg_FG1_FG2   2.9359     0.8042   3.651 0.000296 ***</span></span>
+<span id="cb22-27"><a href="#cb22-27" tabindex="-1"></a><span class="co">#&gt; bfg_FG1_FG3  10.8896     0.8343  13.053  &lt; 2e-16 ***</span></span>
+<span id="cb22-28"><a href="#cb22-28" tabindex="-1"></a><span class="co">#&gt; bfg_FG2_FG3   2.9410     1.2233   2.404 0.016667 *  </span></span>
+<span id="cb22-29"><a href="#cb22-29" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb22-30"><a href="#cb22-30" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb22-31"><a href="#cb22-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-32"><a href="#cb22-32" tabindex="-1"></a><span class="co">#&gt; (Dispersion parameter for gaussian family taken to be 1.443887)</span></span>
+<span id="cb22-33"><a href="#cb22-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-34"><a href="#cb22-34" tabindex="-1"></a><span class="co">#&gt;     Null deviance: 52280.33  on 412  degrees of freedom</span></span>
+<span id="cb22-35"><a href="#cb22-35" tabindex="-1"></a><span class="co">#&gt; Residual deviance:   576.11  on 399  degrees of freedom</span></span>
+<span id="cb22-36"><a href="#cb22-36" tabindex="-1"></a><span class="co">#&gt; AIC: 1335.3</span></span>
+<span id="cb22-37"><a href="#cb22-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb22-38"><a href="#cb22-38" tabindex="-1"></a><span class="co">#&gt; Number of Fisher Scoring iterations: 2</span></span></code></pre></div>
+</div>
+</div>
+<div id="making-predictions-and-testing-contrasts-for-di-models" class="section level2">
+<h2>Making predictions and testing contrasts for DI models</h2>
+<div id="predictions-using-a-di-model" class="section level3">
+<h3>Predictions using a DI model</h3>
+<p>We can make predictions from a DI model just like any other
+regression model using the <code>predict</code> function. The user does
+not need to worry about adding any interaction terms or adjusting any
+columns if theta is not equal to 1. Only the species proportions along
+with any additional experimental structures is needed and all other
+terms in the model will be calculated for the user.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="co"># Fit model</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>m3 <span class="ot">&lt;-</span> <span class="fu">DI</span>(<span class="at">y =</span> <span class="st">&quot;response&quot;</span>, <span class="at">prop =</span> <span class="dv">4</span><span class="sc">:</span><span class="dv">12</span>, </span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>         <span class="at">treat =</span> <span class="st">&quot;treatment&quot;</span>, <span class="at">DImodel =</span> <span class="st">&quot;AV&quot;</span>, </span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>         <span class="at">extra_formula =</span> <span class="sc">~</span> (AV) <span class="sc">:</span> treatment, <span class="at">data =</span> sim3a)</span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a><span class="co">#&gt; Warning in DI_data_prepare(y = y, block = block, density = density, prop = prop, : One or more rows have species proportions that sum to approximately 1, but not exactly 1. This is typically a rounding issue, and has been corrected internally prior to analysis.</span></span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a><span class="co">#&gt; Fitted model: Average interactions &#39;AV&#39; DImodel</span></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a>predict_data <span class="ot">&lt;-</span> sim3[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">79</span>, <span class="dv">352</span>), <span class="dv">3</span><span class="sc">:</span><span class="dv">12</span>]</span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="co"># Only species proportions and treatment is needed</span></span>
+<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a><span class="fu">print</span>(predict_data)</span>
+<span id="cb23-11"><a href="#cb23-11" tabindex="-1"></a><span class="co">#&gt;     treatment p1 p2        p3 p4        p5        p6        p7        p8</span></span>
+<span id="cb23-12"><a href="#cb23-12" tabindex="-1"></a><span class="co">#&gt; 1           A  0  0 0.0000000  0 0.0000000 0.0000000 0.0000000 0.0000000</span></span>
+<span id="cb23-13"><a href="#cb23-13" tabindex="-1"></a><span class="co">#&gt; 79          A  0  0 0.0000000  0 0.5000000 0.0000000 0.0000000 0.5000000</span></span>
+<span id="cb23-14"><a href="#cb23-14" tabindex="-1"></a><span class="co">#&gt; 352         B  0  0 0.1666667  0 0.1666667 0.1666667 0.1666667 0.1666667</span></span>
+<span id="cb23-15"><a href="#cb23-15" tabindex="-1"></a><span class="co">#&gt;            p9</span></span>
+<span id="cb23-16"><a href="#cb23-16" tabindex="-1"></a><span class="co">#&gt; 1   1.0000000</span></span>
+<span id="cb23-17"><a href="#cb23-17" tabindex="-1"></a><span class="co">#&gt; 79  0.0000000</span></span>
+<span id="cb23-18"><a href="#cb23-18" tabindex="-1"></a><span class="co">#&gt; 352 0.1666667</span></span>
+<span id="cb23-19"><a href="#cb23-19" tabindex="-1"></a><span class="co"># Make prediction</span></span>
+<span id="cb23-20"><a href="#cb23-20" tabindex="-1"></a><span class="fu">predict</span>(m3, <span class="at">newdata =</span> predict_data)</span>
+<span id="cb23-21"><a href="#cb23-21" tabindex="-1"></a><span class="co">#&gt;        1       79      352 </span></span>
+<span id="cb23-22"><a href="#cb23-22" tabindex="-1"></a><span class="co">#&gt; 12.83789 14.27503 10.00291</span></span></code></pre></div>
+</div>
+<div id="uncertainity-around-predictions" class="section level3">
+<h3>Uncertainity around predictions</h3>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># The interval and level parameters can be used to calculate the </span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="co"># uncertainty around the predictions</span></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="co"># Get confidence interval around prediction</span></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a><span class="fu">predict</span>(m3, <span class="at">newdata =</span> predict_data, <span class="at">interval =</span> <span class="st">&quot;confidence&quot;</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a><span class="co">#&gt;          fit       lwr      upr</span></span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a><span class="co">#&gt; 1   12.83789 12.028716 13.64707</span></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a><span class="co">#&gt; 79  14.27503 13.817612 14.73246</span></span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a><span class="co">#&gt; 352 10.00291  9.694552 10.31126</span></span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a><span class="co"># Get prediction interval around prediction</span></span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a><span class="fu">predict</span>(m3, <span class="at">newdata =</span> predict_data, <span class="at">interval =</span> <span class="st">&quot;prediction&quot;</span>)</span>
+<span id="cb24-13"><a href="#cb24-13" tabindex="-1"></a><span class="co">#&gt;          fit       lwr      upr</span></span>
+<span id="cb24-14"><a href="#cb24-14" tabindex="-1"></a><span class="co">#&gt; 1   12.83789 10.124779 15.55100</span></span>
+<span id="cb24-15"><a href="#cb24-15" tabindex="-1"></a><span class="co">#&gt; 79  14.27503 11.645310 16.90476</span></span>
+<span id="cb24-16"><a href="#cb24-16" tabindex="-1"></a><span class="co">#&gt; 352 10.00291  7.394976 12.61083</span></span>
+<span id="cb24-17"><a href="#cb24-17" tabindex="-1"></a></span>
+<span id="cb24-18"><a href="#cb24-18" tabindex="-1"></a><span class="co"># The function returns a 95% interval by default, </span></span>
+<span id="cb24-19"><a href="#cb24-19" tabindex="-1"></a><span class="co"># this can be changed using the level argument</span></span>
+<span id="cb24-20"><a href="#cb24-20" tabindex="-1"></a><span class="fu">predict</span>(m3, <span class="at">newdata =</span> predict_data, </span>
+<span id="cb24-21"><a href="#cb24-21" tabindex="-1"></a>        <span class="at">interval =</span> <span class="st">&quot;prediction&quot;</span>, <span class="at">level =</span> <span class="fl">0.9</span>)</span>
+<span id="cb24-22"><a href="#cb24-22" tabindex="-1"></a><span class="co">#&gt;          fit       lwr      upr</span></span>
+<span id="cb24-23"><a href="#cb24-23" tabindex="-1"></a><span class="co">#&gt; 1   12.83789 10.562595 15.11319</span></span>
+<span id="cb24-24"><a href="#cb24-24" tabindex="-1"></a><span class="co">#&gt; 79  14.27503 12.069670 16.48040</span></span>
+<span id="cb24-25"><a href="#cb24-25" tabindex="-1"></a><span class="co">#&gt; 352 10.00291  7.815819 12.18999</span></span></code></pre></div>
+</div>
+<div id="contrasts-for-di-models" class="section level3">
+<h3>Contrasts for DI models</h3>
+<p>The <code>contrasts_DI</code> function can be used to compare and
+formally test for a difference in performance of communities within the
+same as well as across different experimental structures</p>
+<p>Comparing the performance of the monocultures of different species at
+treatment A</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>contr <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">&quot;p1vsp2&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>,  <span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>              <span class="st">&quot;p3vsp5&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>              <span class="st">&quot;p4vsp6&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>,  <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>              <span class="st">&quot;p7vsp9&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,  <span class="dv">0</span>,  <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>))</span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>the_C <span class="ot">&lt;-</span> <span class="fu">contrasts_DI</span>(m3, <span class="at">contrast =</span> contr)</span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a><span class="co">#&gt; Generated contrast matrix:</span></span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a><span class="co">#&gt;        p1_ID p2_ID p3_ID p4_ID p5_ID p6_ID p7_ID p8_ID p9_ID AV treatmentA</span></span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a><span class="co">#&gt; p1vsp2     1    -1     0     0     0     0     0     0     0  0          0</span></span>
+<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a><span class="co">#&gt; p3vsp5     0     0     1     0    -1     0     0     0     0  0          0</span></span>
+<span id="cb25-10"><a href="#cb25-10" tabindex="-1"></a><span class="co">#&gt; p4vsp6     0     0     0     1     0    -1     0     0     0  0          0</span></span>
+<span id="cb25-11"><a href="#cb25-11" tabindex="-1"></a><span class="co">#&gt; p7vsp9     0     0     0     0     0     0     1     0    -1  0          0</span></span>
+<span id="cb25-12"><a href="#cb25-12" tabindex="-1"></a><span class="co">#&gt;        `AV:treatmentB`</span></span>
+<span id="cb25-13"><a href="#cb25-13" tabindex="-1"></a><span class="co">#&gt; p1vsp2               0</span></span>
+<span id="cb25-14"><a href="#cb25-14" tabindex="-1"></a><span class="co">#&gt; p3vsp5               0</span></span>
+<span id="cb25-15"><a href="#cb25-15" tabindex="-1"></a><span class="co">#&gt; p4vsp6               0</span></span>
+<span id="cb25-16"><a href="#cb25-16" tabindex="-1"></a><span class="co">#&gt; p7vsp9               0</span></span>
+<span id="cb25-17"><a href="#cb25-17" tabindex="-1"></a><span class="fu">summary</span>(the_C)</span>
+<span id="cb25-18"><a href="#cb25-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb25-19"><a href="#cb25-19" tabindex="-1"></a><span class="co">#&gt;   Simultaneous Tests for General Linear Hypotheses</span></span>
+<span id="cb25-20"><a href="#cb25-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb25-21"><a href="#cb25-21" tabindex="-1"></a><span class="co">#&gt; Fit: glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb25-22"><a href="#cb25-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb25-23"><a href="#cb25-23" tabindex="-1"></a><span class="co">#&gt; Linear Hypotheses:</span></span>
+<span id="cb25-24"><a href="#cb25-24" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb25-25"><a href="#cb25-25" tabindex="-1"></a><span class="co">#&gt; p1vsp2 == 0    1.473      0.477   3.088  0.00803 ** </span></span>
+<span id="cb25-26"><a href="#cb25-26" tabindex="-1"></a><span class="co">#&gt; p3vsp5 == 0   -2.652      0.477  -5.560 1.08e-07 ***</span></span>
+<span id="cb25-27"><a href="#cb25-27" tabindex="-1"></a><span class="co">#&gt; p4vsp6 == 0    1.462      0.477   3.064  0.00870 ** </span></span>
+<span id="cb25-28"><a href="#cb25-28" tabindex="-1"></a><span class="co">#&gt; p7vsp9 == 0   -5.521      0.477 -11.573  &lt; 2e-16 ***</span></span>
+<span id="cb25-29"><a href="#cb25-29" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb25-30"><a href="#cb25-30" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb25-31"><a href="#cb25-31" tabindex="-1"></a><span class="co">#&gt; (Adjusted p values reported -- single-step method)</span></span></code></pre></div>
+<p>Comparing across the two treatment levels for monoculture of species
+1</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>contr <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="st">&quot;treatAvsB&quot;</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>the_C <span class="ot">&lt;-</span> <span class="fu">contrasts_DI</span>(m3, <span class="at">contrast =</span> contr)</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a><span class="co">#&gt; Generated contrast matrix:</span></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="co">#&gt;           p1_ID p2_ID p3_ID p4_ID p5_ID p6_ID p7_ID p8_ID p9_ID AV treatmentA</span></span>
+<span id="cb26-5"><a href="#cb26-5" tabindex="-1"></a><span class="co">#&gt; treatAvsB     1     0     0     0     0     0     0     0     0  0          1</span></span>
+<span id="cb26-6"><a href="#cb26-6" tabindex="-1"></a><span class="co">#&gt;           `AV:treatmentB`</span></span>
+<span id="cb26-7"><a href="#cb26-7" tabindex="-1"></a><span class="co">#&gt; treatAvsB               0</span></span>
+<span id="cb26-8"><a href="#cb26-8" tabindex="-1"></a><span class="fu">summary</span>(the_C)</span>
+<span id="cb26-9"><a href="#cb26-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb26-10"><a href="#cb26-10" tabindex="-1"></a><span class="co">#&gt;   Simultaneous Tests for General Linear Hypotheses</span></span>
+<span id="cb26-11"><a href="#cb26-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb26-12"><a href="#cb26-12" tabindex="-1"></a><span class="co">#&gt; Fit: glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb26-13"><a href="#cb26-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb26-14"><a href="#cb26-14" tabindex="-1"></a><span class="co">#&gt; Linear Hypotheses:</span></span>
+<span id="cb26-15"><a href="#cb26-15" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb26-16"><a href="#cb26-16" tabindex="-1"></a><span class="co">#&gt; treatAvsB == 0  12.8993     0.4116   31.34   &lt;2e-16 ***</span></span>
+<span id="cb26-17"><a href="#cb26-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb26-18"><a href="#cb26-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb26-19"><a href="#cb26-19" tabindex="-1"></a><span class="co">#&gt; (Adjusted p values reported -- single-step method)</span></span></code></pre></div>
+<p>Comparing between two species mixtures</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>mixA <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="dv">0</span>,      <span class="fl">0.25</span>, <span class="dv">0</span>,      <span class="fl">0.25</span>, <span class="dv">0</span>,      <span class="fl">0.25</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>mixB <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,    <span class="fl">0.3333</span>, <span class="dv">0</span>,    <span class="fl">0.3333</span>, <span class="dv">0</span>,    <span class="fl">0.3333</span>, <span class="dv">0</span>,    <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="co"># We have the proportions of the individual species in the mixtures, however</span></span>
+<span id="cb27-5"><a href="#cb27-5" tabindex="-1"></a><span class="co"># we still need to calculate the interaction effect for these communities</span></span>
+<span id="cb27-6"><a href="#cb27-6" tabindex="-1"></a>contr_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">rbind</span>(mixA, mixB))</span>
+<span id="cb27-7"><a href="#cb27-7" tabindex="-1"></a><span class="fu">colnames</span>(contr_data) <span class="ot">&lt;-</span> <span class="fu">names</span>(<span class="fu">coef</span>(m3))</span>
+<span id="cb27-8"><a href="#cb27-8" tabindex="-1"></a></span>
+<span id="cb27-9"><a href="#cb27-9" tabindex="-1"></a><span class="co"># Adding the interaction effect of the two mixtures</span></span>
+<span id="cb27-10"><a href="#cb27-10" tabindex="-1"></a>contr_data<span class="sc">$</span>AV <span class="ot">&lt;-</span> <span class="fu">DI_data_E_AV</span>(<span class="at">prop =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>, <span class="at">data =</span> contr_data)<span class="sc">$</span>AV</span>
+<span id="cb27-11"><a href="#cb27-11" tabindex="-1"></a><span class="fu">print</span>(contr_data)</span>
+<span id="cb27-12"><a href="#cb27-12" tabindex="-1"></a><span class="co">#&gt;      p1_ID  p2_ID p3_ID  p4_ID p5_ID  p6_ID p7_ID p8_ID p9_ID        AV</span></span>
+<span id="cb27-13"><a href="#cb27-13" tabindex="-1"></a><span class="co">#&gt; mixA  0.25 0.0000  0.25 0.0000  0.25 0.0000  0.25     0     0 0.3750000</span></span>
+<span id="cb27-14"><a href="#cb27-14" tabindex="-1"></a><span class="co">#&gt; mixB  0.00 0.3333  0.00 0.3333  0.00 0.3333  0.00     0     0 0.3332667</span></span>
+<span id="cb27-15"><a href="#cb27-15" tabindex="-1"></a><span class="co">#&gt;      treatmentA `AV:treatmentB`</span></span>
+<span id="cb27-16"><a href="#cb27-16" tabindex="-1"></a><span class="co">#&gt; mixA          0               0</span></span>
+<span id="cb27-17"><a href="#cb27-17" tabindex="-1"></a><span class="co">#&gt; mixB          0               0</span></span>
+<span id="cb27-18"><a href="#cb27-18" tabindex="-1"></a></span>
+<span id="cb27-19"><a href="#cb27-19" tabindex="-1"></a><span class="co"># We can now subtract the respective values in each column of the two </span></span>
+<span id="cb27-20"><a href="#cb27-20" tabindex="-1"></a><span class="co"># mixtures and get our contrast</span></span>
+<span id="cb27-21"><a href="#cb27-21" tabindex="-1"></a>my_contrast <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(contr_data[<span class="dv">1</span>, ] <span class="sc">-</span> contr_data[<span class="dv">2</span>, ])</span>
+<span id="cb27-22"><a href="#cb27-22" tabindex="-1"></a><span class="fu">rownames</span>(my_contrast) <span class="ot">&lt;-</span> <span class="st">&quot;mixAvsB&quot;</span></span>
+<span id="cb27-23"><a href="#cb27-23" tabindex="-1"></a></span>
+<span id="cb27-24"><a href="#cb27-24" tabindex="-1"></a>the_C <span class="ot">&lt;-</span> <span class="fu">contrasts_DI</span>(m3, <span class="at">contrast =</span> my_contrast)</span>
+<span id="cb27-25"><a href="#cb27-25" tabindex="-1"></a><span class="co">#&gt; Generated contrast matrix:</span></span>
+<span id="cb27-26"><a href="#cb27-26" tabindex="-1"></a><span class="co">#&gt;         p1_ID   p2_ID p3_ID   p4_ID p5_ID   p6_ID p7_ID p8_ID p9_ID         AV</span></span>
+<span id="cb27-27"><a href="#cb27-27" tabindex="-1"></a><span class="co">#&gt; mixAvsB  0.25 -0.3333  0.25 -0.3333  0.25 -0.3333  0.25     0     0 0.04173333</span></span>
+<span id="cb27-28"><a href="#cb27-28" tabindex="-1"></a><span class="co">#&gt;         treatmentA `AV:treatmentB`</span></span>
+<span id="cb27-29"><a href="#cb27-29" tabindex="-1"></a><span class="co">#&gt; mixAvsB          0               0</span></span>
+<span id="cb27-30"><a href="#cb27-30" tabindex="-1"></a><span class="fu">summary</span>(the_C)</span>
+<span id="cb27-31"><a href="#cb27-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb27-32"><a href="#cb27-32" tabindex="-1"></a><span class="co">#&gt;   Simultaneous Tests for General Linear Hypotheses</span></span>
+<span id="cb27-33"><a href="#cb27-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb27-34"><a href="#cb27-34" tabindex="-1"></a><span class="co">#&gt; Fit: glm(formula = new_fmla, family = family, data = new_data)</span></span>
+<span id="cb27-35"><a href="#cb27-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb27-36"><a href="#cb27-36" tabindex="-1"></a><span class="co">#&gt; Linear Hypotheses:</span></span>
+<span id="cb27-37"><a href="#cb27-37" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb27-38"><a href="#cb27-38" tabindex="-1"></a><span class="co">#&gt; mixAvsB == 0   2.0379     0.2599   7.841 4.44e-15 ***</span></span>
+<span id="cb27-39"><a href="#cb27-39" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb27-40"><a href="#cb27-40" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb27-41"><a href="#cb27-41" tabindex="-1"></a><span class="co">#&gt; (Adjusted p values reported -- single-step method)</span></span></code></pre></div>
 </div>
 </div>
 <div id="references" class="section level2">
