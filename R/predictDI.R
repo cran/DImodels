@@ -1,4 +1,4 @@
-
+# Predict function
 predict.DI <- function (object, newdata, se.fit = FALSE, 
                         interval = c("none", "confidence", "prediction"), 
                         level = 0.95, weights = 1,
@@ -33,15 +33,8 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
     
     original_data <- object$original_data
     model_data <- eval(object$model)
-    prop_cols <- eval(object$DIcall$prop)
-    ID_cols <- eval(object$DIcall$ID)
-    
-    if (is.numeric(prop_cols)){
-      prop <- names(original_data[, prop_cols])
-    } else {
-      prop <- prop_cols
-    }
-    
+    prop <- attr(object, "prop")
+    ID_cols <- attr(object, "ID")
     
     if (!is.null(prop) & !all(prop %in% colnames(newdata))){
       prop_in_data <- prop[prop %in% colnames(newdata)]
@@ -73,7 +66,7 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
     
     if (!DImodel_tag %in% c("ID", "STR")) {
       
-      extra_variables <- DI_data(prop = prop, FG = eval(object$DIcall$FG), 
+      extra_variables <- DI_data(prop = prop, FG = attr(object, "FG"), 
                                  data = newdata, theta = theta_value, what = DImodel_tag)
       if (DImodel_tag == "E") {
         updated_newdata <- data.frame(newdata, E = extra_variables)
@@ -101,11 +94,6 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
     }
     
     # Grouping ID terms 
-    # If not grouping was specified
-    if(is.null(ID_cols)){
-      ID_cols <- paste0(prop, "_ID")
-    }
-    
     grouped_IDs <- group_IDs(data = updated_newdata, prop = prop, ID = ID_cols)
     updated_newdata <- cbind(updated_newdata, grouped_IDs)
     
@@ -212,7 +200,7 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
           
           # If levels of factors in extra_formula in newdata not matching ones in original data, stop prediction
           if (! (all(unique(updated_newdata[, i]) %in% xlevels[[i]], na.rm = TRUE))){
-            stop(paste0('Values for ', covariate,' given were not present in raw data used for fitting. Predictions can\'t be made for these values.'))
+            stop(paste0('Values for ', i,' given were not present in raw data used for fitting. Predictions can\'t be made for these values.'))
           }
           
           # If factors in extra_formula is supplied as character or numeric, converting to factor
@@ -231,7 +219,7 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
       
       fmla <-  eval(object$DIcheck_formula)
       
-      extra_variables <- DI_data(prop = prop, FG = eval(object$DIcall$FG), 
+      extra_variables <- DI_data(prop = prop, FG = attr(object, "FG"), 
                                  data = original_data, theta = theta_value, what = DImodel_tag)
       
       if (DImodel_tag == "E") {
@@ -256,11 +244,6 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
       }
       
       # Grouping ID terms 
-      # If no grouping was specified
-      if(is.null(ID_cols)){
-        ID_cols <- paste0(prop, "_ID")
-      }
-      
       grouped_IDs <- group_IDs(data = original_data_updated, prop = prop, ID = ID_cols)
       original_data_updated <- cbind(original_data_updated, grouped_IDs)
       
@@ -378,128 +361,27 @@ predict.DI <- function (object, newdata, se.fit = FALSE,
 }
 
 
-contrasts_DI <- function(object, contrast, contrast_vars, ...){
-  if (missing(object) | class(object)[1]!= 'DI'){
-    stop("Please provied a DImodels model object")
-  }
-  
-  if (missing(contrast_vars) & missing(contrast)){
-    stop("Provide either one of `contrast_vars` or `constrast`")  
-  }
-  
-  if (!missing(contrast_vars) & !missing(contrast)){
-    warning("Provide only one of `contrast_vars` or `constrast`. `contrast_vars` will be ignored.") 
-    contrast_vars <- NULL
-  }
-  
-  og_data <- object$original_data
-  # prop_cols <- eval(object$DIcall$prop)
-  # prop <- colnames(og_data)[prop_cols]
-  # ID_cols <- eval(object$DIcall$ID)
-  # 
-  # # Grouping ID terms 
-  # # If not grouping was specified
-  # if(is.null(ID_cols)){
-  #   ID_cols <- paste0(prop, "_ID")
-  # }
-  # 
-  # grouped_IDs <- group_IDs(data = og_data, prop = prop, ID = ID_cols)
-  # og_data <- cbind(og_data, grouped_IDs)
-  
-  betas <- coef(object)
-  theta_flag <- object$coefficients['theta']
-  if (!is.na(theta_flag)){
-    theta_value <- coef(object)["theta"]
-    betas <- betas[-length(betas)]
-  }
-  
-  if (!missing(contrast_vars) && !is.null(contrast_vars)){
-    
-    if(!is.list(contrast_vars)){
-      stop('Contrast variables should be specified as a nested named list')
-    }
-    
-    the_C <- matrix(0, ncol = length(betas))
-    colnames(the_C) <- names(betas)
-    
-    for (var in names(contrast_vars)){
-      # if(var %in% prop) {
-      #   var <- paste0(var, "_ID")
-      # }
-      
-      if (!(var %in% colnames(og_data))){
-        stop(paste0(var, ' not present in model'))
-      }
-      
-      if(!is.numeric(og_data[,var])){
-        if ((length(unlist(contrast_vars[[var]]))/length(unique(og_data[,var]))) %% 1 !=0){
-          stop('Lengths of each element of contrasts list should be same as levels of variable in model')
-        }
-      }
-          
-      match_names <- paste0(var, levels(og_data[,var]))
-      contr.mat <- t(sapply(contrast_vars[[var]], identity))
-      colnames(contr.mat) <- match_names
-      if (is.null(rownames(contr.mat))){
-        rownames(contr.mat) <- paste0(var ,' Test ',1:nrow(contr.mat))
-      }
-      C_iter <- matrix(0, ncol = length(betas), nrow = nrow(contr.mat))
-      colnames(C_iter) <- names(betas)
-      common <- intersect(names(betas), match_names)
-      C_iter[, common] <- contr.mat[, common]
-      rownames(C_iter) <- rownames(contr.mat)
-      the_C <- rbind(the_C, C_iter)
-    }
-    the_C <- the_C[-1,]
-    if(class(the_C)[1]=='numeric'){
-      the_C <- t(as.matrix(the_C))
-      rownames(the_C) <- rownames(contr.mat)
-    }
-  }
-  
-  if (!missing(contrast)){
-    if(class(contrast)[1] == 'list'){
-      if (!all(lengths(contrast) == length(betas))){
-        stop('Lengths of each element of contrasts list should be same as number of coefficients in model')
-      }
-      the_C <- t(sapply(contrast, identity, simplify = TRUE, USE.NAMES = TRUE))
-    } else if (class(contrast)[1] == 'numeric'){
-      if((length(contrast)/length(betas)) %% 1 !=0){
-        stop('Number of elements in contrasts vector should be a multiple of number of coefficients in model')
-      }
-      the_C <- matrix(contrast, ncol = length(betas), byrow = TRUE)
-    } else if (class(contrast)[1] == 'matrix'){
-      if(ncol(contrast)!= length(betas)){
-        stop('Number of columns in contrast matrix should be same as number of coefficients in model')
-      }
-      the_C <- contrast
-    } else {
-      stop('Specify contrast as either a numeric vector, list or matrix')
-    }
-    if (is.null(rownames(the_C))){
-      rownames(the_C) <- paste0('Test ',1:nrow(the_C))
-    }
-    colnames(the_C) <- names(betas)
-  }
-  
-  cat('Generated contrast matrix:\n')
-  print(the_C)
-  
-  contr.test <- multcomp::glht(object, linfct = the_C, coef = betas, vcov = vcov(object), ...)
-  return(contr.test)
-}
 
+# Helpers for predict function
 is_near <- function (x, y, tol = .Machine$double.eps^0.5) {
   abs(x - y) < tol
 }
 
 # Fortify method for model diagnostics
-fortify.DI <- function(model, data = model$model, ...){
+fortify.DI <- function(model, data = model$model, ...){ 
   # Add proportions to data
-  prop_idx <- eval(model$DIcall$prop)
-  prop <- model$data[, prop_idx]
+  # Only those prop which are different from ID
+  prop_idx <- attr(model, "prop")
+  IDs <- attr(model, "ID")
+  prop_not_in_ID <- prop_idx[!prop_idx %in% IDs]
+  prop <- model$data[, prop_not_in_ID, drop = FALSE]
   data <- cbind(data, prop)
-    
+  
+  # Add factor version of any categorical variables in the model
+  cols_to_add <- setdiff(colnames(model$original_data), 
+                         colnames(data))
+  data <- cbind(data, model$original_data[, cols_to_add])
+  
   # Add other statistics
   infl <- stats::influence(model, do.coef = FALSE)
   data$.hat <- infl$hat

@@ -80,8 +80,18 @@ test_that("predict function works", {
             data = swiss_num_treat)
   
   # If not numeric variables present in model are present in newdata warning will be thrown
-  expect_warning(predict(mod_num, newdata = swiss_num_treat[1:4, -c(2)]),
+  expect_warning(predict(mod_num, newdata = swiss_num_treat[1:4, 3:7]),
                  regexp = "not supplied in newdata. Calculating the prediction")
+  
+  ## Fit model
+  mod <- DI(y = "yield", prop = 4:7, DImodel = "AV",
+            extra_formula = ~density,
+            estimate_theta = TRUE, data = Switzerland)
+  # If any levels of factors in newdata were not present in model data error will be thrown
+  expect_error(predict(mod, newdata = data.frame(p1 = c(0, 1), p2 = c(0, 0),
+                                                 p3 = c(1, 0), p4 = c(0, 0),
+                                                 density = c("medium", "medium"))),
+               regexp = "Predictions can't be made for these values.")
 })
 
 test_that("Prediction works for all interaction structures", {
@@ -156,6 +166,19 @@ test_that("Prediction works for all interaction structures", {
   expect_equal(predict(mod_int, newdata = swiss_num_treat[1:4, ]),
                c(12.5973542522238, 12.5526641100415, 16.688737071961, 14.598036300529),
                ignore_attr = TRUE)
+  
+  # FG model without extra_formula
+  mod_int <- DI(y = "yield", prop = 4:7, treat = "nitrogen",
+                density = "density", DImodel = "FG",
+                FG = c("G", "G", "H", "H"),
+                data = swiss_num_treat)
+  expect_equal(predict(mod_int, newdata = swiss_num_treat[1, ]),
+               c(13.08026870),
+               ignore_attr = TRUE)
+  expect_equal(predict(mod_int, newdata = swiss_num_treat[1:4, ]),
+               c(13.08026870, 13.11427571, 17.05917049, 14.96846972),
+               ignore_attr = TRUE)
+  
 })
 
 test_that("Prediction works with grouped ID effects", {
@@ -267,7 +290,7 @@ test_that("Prediction works with grouped ID effects", {
   
 # Testing CI and PI work
 
-test_that("contrasts function works", {
+test_that("CI and PI work", {
   data("sim2")
   
   mod <- DI(y = "response", DImodel = "FULL",
@@ -319,86 +342,7 @@ test_that("contrasts function works", {
 
 })
 
-# Testing contrast function
-test_that("contrasts function works", {
-  data("Switzerland")
-  
-  ## Fit model
-  mod <- DI(y = "yield", prop = 4:7, treat = "nitrogen",
-            density = "density", DImodel = "AV",
-            extra_formula = ~nitrogen:density,
-            estimate_theta = TRUE, data = Switzerland)
-  
-  # Model should be a DImodels object
-  expect_error(contrasts_DI(lm(yield ~ p1 + p2, data = Switzerland)), 
-               regexp = "Please provied a DImodels model object")
-  
-  # Mandatory to specify either constrast_vars or contrast
-  expect_error(contrasts_DI(mod), 
-               regexp = "Provide either one of `contrast_vars` or `constrast`")
-  
-  # Can't specify both contrast_vars and contrast
-  expect_warning(contrasts_DI(mod, contrast_vars = 0, contrast = rep(0, 8)),
-                 regexp = "Provide only one of `contrast_vars` or `constrast`")
-  
-  # Ensure contrast vector is of appropriate type
-  expect_error(contrasts_DI(mod, contrast = c("1", "-1", "0", "0")),
-               regexp = "Specify contrast as either a numeric vector, list or matrix")
-  
-  # Ensure contrast vector is of proper length
-  expect_error(contrasts_DI(mod, contrast = c(1, -1, 0, 0)),
-               regexp = "Number of elements in contrasts vector should be a multiple of number of coefficients in model")
-  
-  # Ensure contrast has appropriate columns if specified as a matrix
-  expect_error(contrasts_DI(mod, contrast = matrix(c(1, -1, 0, 0), ncol = 4)),
-               regexp = "Number of columns in contrast matrix should be same as number of coefficients in model")
-  
-  # Ensure contrast has appropriate length if specified as list 
-  expect_error(contrasts_DI(mod, contrast = list(1, -1, 0, 0)),
-               regexp = "Lengths of each element of contrasts list should be same as number of coefficients in model")
-  
-  # Ensure contrast_vars are specified as a list
-  expect_error(contrasts_DI(mod, contrast_vars = c("density" = c(-0.25, 0.25, 0.25, -0.25))),
-               regexp = "Contrast variables should be specified as a nested named list")
-  
-  # Ensure user specifies variables present in model in contrast_vars
-  expect_error(contrasts_DI(mod, contrast_vars = list(p5 = c(0, 1))),
-               regexp = "not present in model")
-  
-  # Ensure number of elements in contrast_vars are same as number of levels of factor in model
-  expect_error(contrasts_DI(mod, contrast_vars = list("density" = c(-1, 1, 1))),
-               regexp = "Lengths of each element of contrasts list should be same as levels of variable in model")
-  
-  # Correct examples
-  the_C <- matrix(c(1, 1, -1, -1, 0, 0, 0, 0), nrow = 1)
-  colnames(the_C) <- names(mod$coefficients[1:8])
-  # Contrast as matrix
-  expect_equal(contrasts_DI(mod, contrast = the_C),
-               multcomp::glht(mod, linfct = the_C , 
-                              coef = mod$coef[1:8], vcov = vcov(mod)),
-               ignore_attr = TRUE)
-  
-  # Contrast as vector
-  expect_equal(contrasts_DI(mod, contrast = c(1, 1, -1, -1, 0, 0, 0, 0)),
-               multcomp::glht(mod, linfct = the_C , 
-                              coef = mod$coef[1:8], vcov = vcov(mod)),
-               ignore_attr = TRUE)
-  
-  # Contrast as list
-  expect_equal(contrasts_DI(mod, contrast = list(c(1, 1, -1, -1, 0, 0, 0, 0))),
-               multcomp::glht(mod, linfct = the_C , 
-                              coef = mod$coef[1:8], vcov = vcov(mod)),
-               ignore_attr = TRUE)
-  
-  # Using contrast_vars
-  the_C <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow = 1)
-  colnames(the_C) <- names(mod$coefficients[1:8])
-  expect_equal(contrasts_DI(mod, contrast_vars = list("nitrogen" = list("50v150"  = c(1, -1)))),
-               multcomp::glht(mod, linfct = the_C , 
-                              coef = mod$coef[1:8], vcov = vcov(mod)),
-               ignore_attr = TRUE)
-  
-})
+
 
 # test fortify
 # Test describe_model
@@ -407,7 +351,11 @@ test_that("fortify.DI works", {
   ## Fit model
   mod_FG <- DI(y = "response", FG = c("G", "G", "L", "L"), 
                prop = 3:6, data = sim2, DImodel = "FG")
-  ## Describe model
+  ## Fortify model
   expect_equal(fortify(mod_FG),
-               cbind(ggplot2:::fortify.lm(mod_FG), sim2[, 3:6])[, c(1:6, 13:16, 7:12)])
+               cbind(ggplot2:::fortify.lm(mod_FG), sim2[, 1:6])[, c(1:6, 15:18, 13:14, 7:12)])
 })
+
+
+
+

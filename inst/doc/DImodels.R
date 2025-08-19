@@ -8,14 +8,14 @@ knitr::opts_chunk$set(
 library(DImodels)
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  install.packages("DImodels")
-#  library("DImodels")
+# install.packages("DImodels")
+# library("DImodels")
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  ?DImodels
+# ?DImodels
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  ?sim3
+# ?sim3
 
 ## ----echo = FALSE, results='asis'---------------------------------------------
 library(DImodels)
@@ -38,13 +38,13 @@ auto1 <- autoDI(y = "response", prop = 4:12, treat = "treatment",
                 selection = "Ftest")
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  ?autoDI
+# ?autoDI
 
 ## ----echo = TRUE--------------------------------------------------------------
 summary(auto1)
 
 ## ----eval = FALSE, echo = TRUE------------------------------------------------
-#  theta_CI(auto1, conf = .95)
+# theta_CI(auto1, conf = .95)
 
 ## ----echo = TRUE--------------------------------------------------------------
 m1 <- DI(y = "response", prop = 4:12, 
@@ -70,8 +70,8 @@ m1_group2 <- update_DI(object = m1_theta,
 coef(m1_group2)
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  ?DI
-#  ?autoDI
+# ?DI
+# ?autoDI
 
 ## ----echo = TRUE--------------------------------------------------------------
 m2 <- DI(y = "response", prop = 4:12, 
@@ -130,36 +130,66 @@ predict(m3, newdata = predict_data,
         interval = "prediction", level = 0.9)
 
 ## ----echo = TRUE--------------------------------------------------------------
-contr <- list("p1vsp2" = c(1, -1, 0, 0,  0,  0, 0, 0,  0, 0, 0, 0),
-              "p3vsp5" = c(0,  0, 1, 0, -1,  0, 0, 0,  0, 0, 0, 0),
-              "p4vsp6" = c(0,  0, 0, 1,  0, -1, 0, 0,  0, 0, 0, 0),
-              "p7vsp9" = c(0,  0, 0, 0,  0,  0, 1, 0, -1, 0, 0, 0))
-the_C <- contrasts_DI(m3, contrast = contr)
+contr <- data.frame(p1 = c(1,  0),
+                    p2 = c(-1, 0),
+                    p7 = c(0,  1),
+                    p9 = c(0, -1))
+rownames(contr) <- c("p1_vs_p2", "p7_vs_p9")
+  
+the_C <- contrasts_DI(m3, contrast_vars = contr)
 summary(the_C)
 
 ## ----echo = TRUE--------------------------------------------------------------
-contr <- list("treatAvsB" = c(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0))
-the_C <- contrasts_DI(m3, contrast = contr)
+contr <- data.frame("treatmentA" = 1)
+rownames(contr) <- "p1_TreatmentAvsB"
+the_C <- contrasts_DI(m3, contrast_vars = contr)
 summary(the_C)
 
 ## ----echo = TRUE--------------------------------------------------------------
-mixA <- c(0.25, 0,      0.25, 0,      0.25, 0,      0.25, 0, 0, 0, 0, 0)
-mixB <- c(0,    0.3333, 0,    0.3333, 0,    0.3333, 0,    0, 0, 0, 0, 0)
+# Suppose these are species communities we wish to compare
+mixA <- c(0.25, 0,      0.25, 0,      0.25, 0,      0.25, 0, 0)
+mixB <- c(0,    0.3333, 0,    0.3333, 0,    0.3333, 0,    0, 0)
 
-# We have the proportions of the individual species in the mixtures, however
-# we still need to calculate the interaction effect for these communities
-contr_data <- data.frame(rbind(mixA, mixB))
-colnames(contr_data) <- names(coef(m3))
+# The contrast can be created by subtracting the species proportions
+contr <- matrix(mixA - mixB, nrow = 1)
+colnames(contr) <- paste0("p", 1:9)
+print(contr)
 
-# Adding the interaction effect of the two mixtures
-contr_data$AV <- DI_data_E_AV(prop = 1:9, data = contr_data)$AV
-print(contr_data)
+# The values for the interaction terms will be calculated 
+# automatically 
+the_C <- contrasts_DI(m3, contrast_vars = contr)
+summary(the_C)
 
-# We can now subtract the respective values in each column of the two 
-# mixtures and get our contrast
-my_contrast <- as.matrix(contr_data[1, ] - contr_data[2, ])
-rownames(my_contrast) <- "mixAvsB"
+## ----echo = TRUE--------------------------------------------------------------
+# p1, p2, p5 and p7 equi-proportional mixture at treatment A
+mixA <- contrast_matrix(object = m3, 
+                        contrast_vars = data.frame("p1" = 0.25, 
+                                                   "p2" = 0.25,                                                          "p5" = 0.25,
+                                                   "p7" = 0.25,
+                                                   "treatmentA" = 1))
+# p2, p4, and p6 equi-proportional mixture at treatment A
+mixB <- contrast_matrix(object = m3, 
+                        contrast_vars = data.frame("p2" = 1/3, 
+                                                   "p4" = 1/3,                                                           "p6" = 1/3,
+                                                   "treatmentA" = 1))
+# Subtracting these two values would give us the contrast for 
+# comparing these mixtures
+my_contrast <- mixA - mixB
+rownames(my_contrast) <- "4_sp_mix vs 3_sp_mix"
 
+# This contrast can be passed to the `contrast` parameter in `contrasts_DI`
 the_C <- contrasts_DI(m3, contrast = my_contrast)
 summary(the_C)
+
+## -----------------------------------------------------------------------------
+comms_to_compare <- sim3[c(36, 79, 352), 3:12]
+compare_communities(m3, data = comms_to_compare)
+
+## -----------------------------------------------------------------------------
+# ref accepts either a row-number of rowname of the community to be used as reference
+# adjust should be one of the following
+# c("single-step", "Shaffer", "Westfall", "free", "holm",
+#   "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none") 
+compare_communities(m3, data = comms_to_compare,
+                    ref = 3, adjust = "bonferroni")
 
